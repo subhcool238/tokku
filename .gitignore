@@ -11,3 +11,4 @@ settings.local.json
 tools/.venv/
 art/out/
 __pycache__/
+tools/.models/

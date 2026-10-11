@@ -276,7 +276,7 @@
       let im, ax, fy, flip = false, w, h;
       if (v.type === 'rig') { im = this._renderRig(); if (!im) return; ax = this.c.rig.anchorX + this.M; fy = this.c.rig.feetY + this.M; w = im.width; h = im.height; }
       let k = 1;
-      if (v.type === 'ring') { const r = this.ring[v.idx]; im = this.img[r.file]; ax = this.c.ring.anchorX; fy = this.c.ring.feetY; flip = !!r.flip; k = this.c.ring.scale || 1; }
+      if (v.type === 'ring') { const r = this.ring[v.idx]; im = this.img[r.file]; ax = r.anchorX ?? this.c.ring.anchorX; fy = r.feetY ?? this.c.ring.feetY; flip = !!r.flip; k = r.scale ?? this.c.ring.scale ?? 1; }   // art v3: each view has its own anchor and scale
       else if (v.type === 'pose') { const p = this.c.poses[v.name]; im = this.img[p.file]; ax = p.anchorX; fy = p.feetY; flip = !!v.flip; k = p.scale || 1; }
       if (!im) return; w = w || im.width; h = h || im.height;
       ctx.save(); ctx.globalAlpha = alpha;

@@ -1,5 +1,5 @@
 {
- "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame.",
+ "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame. 'erase' = boxes [x0, y0, x1, y1] in pixels of the cell (x from the cell's left edge, y from the top of the sheet) that are painted white before cutting. 'fix_white': true = take back white face fur that the background remover ate (use only where a notch shows in the forehead or muzzle).",
  "sheets": {
   "S01": {
    "file": "S01_walk_A.png",
@@ -129,7 +129,8 @@
    "frames": [
     {
      "name": "sleepy_stand",
-     "use": true
+     "use": true,
+     "fix_white": true
     },
     {
      "name": "yawn_sit",
@@ -137,7 +138,8 @@
     },
     {
      "name": "drowsy_sit",
-     "use": true
+     "use": true,
+     "fix_white": true
     },
     {
      "name": "sleep_curl",
@@ -161,7 +163,15 @@
     {
      "name": "sleep_ear_twitch",
      "use": true,
-     "remove_marks": true
+     "remove_marks": true,
+     "erase": [
+      [
+       258,
+       148,
+       348,
+       193
+      ]
+     ]
     },
     {
      "name": "sleep_tail_curl",
@@ -209,7 +219,8 @@
     {
      "name": "wake_yawn_lying",
      "use": true,
-     "remove_marks": true
+     "remove_marks": true,
+     "fix_white": true
     },
     {
      "name": "wake_sit_rub",
@@ -303,7 +314,8 @@
     },
     {
      "name": "joy_jump",
-     "use": true
+     "use": true,
+     "fix_white": true
     },
     {
      "name": "joy_wink_thumbs",
@@ -445,12 +457,14 @@
    "frames": [
     {
      "name": "break_stretch",
-     "use": true
+     "use": true,
+     "fix_white": true
     },
     {
      "name": "break_yawn",
      "use": true,
-     "remove_marks": true
+     "remove_marks": true,
+     "fix_white": true
     },
     {
      "name": "break_sit_relaxed",

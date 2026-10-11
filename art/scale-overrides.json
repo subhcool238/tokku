@@ -1,0 +1,9 @@
+{
+ "_about": "Manual corrections applied last by tools/cut_sprites.py. Keys per frame: scale, anchorX, feetY. Set by eye on the contact sheet.",
+ "wake_lying": { "scale": 0.95 },
+ "stretch_up": { "scale": 1.02 },
+ "awake_front": { "scale": 1.06 },
+ "lean_wave": { "scale": 0.96 },
+ "wave_hello": { "scale": 1.02 },
+ "paw_stop": { "scale": 1.0 }
+}
