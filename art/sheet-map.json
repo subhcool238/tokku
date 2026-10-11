@@ -1,0 +1,530 @@
+{
+ "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame.",
+ "sheets": {
+  "S01": {
+   "file": "S01_walk_A.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Faces right. Reference sheet for colour and head size of side views.",
+   "frames": [
+    {
+     "name": "walk_1",
+     "use": true
+    },
+    {
+     "name": "walk_2",
+     "use": true
+    },
+    {
+     "name": "walk_3",
+     "use": true
+    },
+    {
+     "name": "walk_4",
+     "use": true
+    }
+   ]
+  },
+  "S02": {
+   "file": "S02_walk_B.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Drawn facing LEFT. Mirror all 4 so the cycle walk_1..walk_8 faces right.",
+   "frames": [
+    {
+     "name": "walk_5",
+     "use": true,
+     "mirror": true
+    },
+    {
+     "name": "walk_6",
+     "use": true,
+     "mirror": true
+    },
+    {
+     "name": "walk_7",
+     "use": true,
+     "mirror": true
+    },
+    {
+     "name": "walk_8",
+     "use": true,
+     "mirror": true
+    }
+   ]
+  },
+  "S03": {
+   "file": "S03_walk_start_stop.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Faces right. Frames 1 and 4 are nearly the same on purpose.",
+   "frames": [
+    {
+     "name": "walk_start_lean",
+     "use": true
+    },
+    {
+     "name": "walk_start_step",
+     "use": true
+    },
+    {
+     "name": "walk_stop_slow",
+     "use": true
+    },
+    {
+     "name": "side_idle",
+     "use": true
+    }
+   ]
+  },
+  "S04": {
+   "file": "S04_turn_A.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Mirror frame 1 only: its tail is on the wrong side compared with frame 2.",
+   "frames": [
+    {
+     "name": "turn_000",
+     "use": true,
+     "mirror": true
+    },
+    {
+     "name": "turn_030",
+     "use": true
+    },
+    {
+     "name": "turn_060",
+     "use": true
+    },
+    {
+     "name": "turn_090",
+     "use": true
+    }
+   ]
+  },
+  "S05": {
+   "file": "S05_turn_B.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "turn_120",
+     "use": true
+    },
+    {
+     "name": "turn_150",
+     "use": true
+    },
+    {
+     "name": "turn_180",
+     "use": true
+    },
+    {
+     "name": "turn_210_bad",
+     "use": false,
+     "reason": "face and tail point the same way; replaced by derived turn_210"
+    }
+   ]
+  },
+  "S06": {
+   "file": "S06_sit_to_sleep.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "sleepy_stand",
+     "use": true
+    },
+    {
+     "name": "yawn_sit",
+     "use": true
+    },
+    {
+     "name": "drowsy_sit",
+     "use": true
+    },
+    {
+     "name": "sleep_curl",
+     "use": true
+    }
+   ]
+  },
+  "S07": {
+   "file": "S07_sleep_loop.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Frame 3 has drawn motion arcs above the ear: remove them.",
+   "frames": [
+    {
+     "name": "sleep_breathe_in",
+     "use": true
+    },
+    {
+     "name": "sleep_breathe_out",
+     "use": true
+    },
+    {
+     "name": "sleep_ear_twitch",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "sleep_tail_curl",
+     "use": true
+    }
+   ]
+  },
+  "S08": {
+   "file": "S08_wake_up.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "wake_curl_dup",
+     "use": false,
+     "reason": "same as sleep_curl"
+    },
+    {
+     "name": "wake_lying",
+     "use": true
+    },
+    {
+     "name": "stretch_up",
+     "use": true
+    },
+    {
+     "name": "awake_front",
+     "use": true
+    }
+   ]
+  },
+  "S08B": {
+   "file": "S08B_wake_inbetween.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "More saturated orange than S01 to S08: colour-match it. Frame 3 has drawn lines: remove them.",
+   "frames": [
+    {
+     "name": "wake_ear_lift",
+     "use": true
+    },
+    {
+     "name": "wake_peek",
+     "use": true
+    },
+    {
+     "name": "wake_yawn_lying",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "wake_sit_rub",
+     "use": true
+    }
+   ]
+  },
+  "S09": {
+   "file": "S09_attention.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Frame 1 has a drawn '!' mark: remove it.",
+   "frames": [
+    {
+     "name": "notice",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "lean_wave",
+     "use": true
+    },
+    {
+     "name": "wave_hello",
+     "use": true
+    },
+    {
+     "name": "paw_stop",
+     "use": true
+    }
+   ]
+  },
+  "S10": {
+   "file": "S10_bargain.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "plead",
+     "use": true
+    },
+    {
+     "name": "hopeful",
+     "use": true
+    },
+    {
+     "name": "accept_thumbs",
+     "use": true
+    },
+    {
+     "name": "sulk",
+     "use": true
+    }
+   ]
+  },
+  "S11": {
+   "file": "S11_surprise.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "surprise_neutral",
+     "use": true
+    },
+    {
+     "name": "surprise_start",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "surprise_strong",
+     "use": true
+    },
+    {
+     "name": "surprise_recover",
+     "use": true
+    }
+   ]
+  },
+  "S12": {
+   "file": "S12_joy.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "joy_jump has both feet off the ground: keep its real height above the baseline, do not drop it to the baseline.",
+   "frames": [
+    {
+     "name": "joy_excited",
+     "use": true
+    },
+    {
+     "name": "joy_cheer_leg",
+     "use": true
+    },
+    {
+     "name": "joy_jump",
+     "use": true
+    },
+    {
+     "name": "joy_wink_thumbs",
+     "use": true
+    }
+   ]
+  },
+  "S13": {
+   "file": "S13_investigate.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "inspect_low",
+     "use": true
+    },
+    {
+     "name": "inspect_glass",
+     "use": false,
+     "reason": "magnifying glass prop, optional"
+    },
+    {
+     "name": "think_chin",
+     "use": true
+    },
+    {
+     "name": "found_point",
+     "use": true,
+     "remove_marks": true
+    }
+   ]
+  },
+  "S14": {
+   "file": "S14_task_done.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Keep the green check mark prop in frame 3, it is part of the pose.",
+   "frames": [
+    {
+     "name": "done_thumbs",
+     "use": true
+    },
+    {
+     "name": "done_cheer",
+     "use": true
+    },
+    {
+     "name": "done_checkmark",
+     "use": true
+    },
+    {
+     "name": "done_proud",
+     "use": true,
+     "remove_marks": true
+    }
+   ]
+  },
+  "S15": {
+   "file": "S15_annoyed.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "annoyed_mild",
+     "use": true
+    },
+    {
+     "name": "annoyed_question",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "annoyed_angry",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "annoyed_shout",
+     "use": false,
+     "reason": "too aggressive for Tokku's personality"
+    }
+   ]
+  },
+  "S16": {
+   "file": "S16_dragged.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Frames 1 and 2 are in the air: keep their height above the baseline.",
+   "frames": [
+    {
+     "name": "drag_grab",
+     "use": true,
+     "remove_marks": true,
+     "airborne": true
+    },
+    {
+     "name": "drag_hang",
+     "use": true,
+     "airborne": true
+    },
+    {
+     "name": "drag_land",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "drag_sit",
+     "use": true
+    }
+   ]
+  },
+  "S17": {
+   "file": "S17_quiet.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "quiet_back_sit",
+     "use": true
+    },
+    {
+     "name": "quiet_rest_curl",
+     "use": true
+    },
+    {
+     "name": "peek_wall",
+     "use": false,
+     "reason": "wall baked in, cannot be cut cleanly"
+    },
+    {
+     "name": "come_out_wall",
+     "use": false,
+     "reason": "wall baked in"
+    }
+   ]
+  },
+  "S18": {
+   "file": "S18_break.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "",
+   "frames": [
+    {
+     "name": "break_stretch",
+     "use": true
+    },
+    {
+     "name": "break_yawn",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "break_sit_relaxed",
+     "use": true
+    },
+    {
+     "name": "break_lie_rest",
+     "use": true
+    }
+   ]
+  },
+  "S19": {
+   "file": "S19_away.png",
+   "layout": "4 equal columns, 1 row",
+   "note": "Puff cloud and motion arcs are drawn in: remove them.",
+   "frames": [
+    {
+     "name": "away_look_away",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "away_check_time",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "away_pace",
+     "use": true,
+     "remove_marks": true
+    },
+    {
+     "name": "away_sigh",
+     "use": true,
+     "remove_marks": true
+    }
+   ]
+  },
+  "S20": {
+   "file": "S20_mouth_shapes.png",
+   "skip": true,
+   "reason": "Heads are tilted and eyes look in different directions, so they do not fit the front idle. Keep the existing 2-frame mouth flap."
+  }
+ },
+ "derived": [
+  {
+   "name": "turn_210",
+   "from": "turn_150",
+   "mirror": true
+  },
+  {
+   "name": "turn_240",
+   "from": "turn_120",
+   "mirror": true
+  },
+  {
+   "name": "turn_270",
+   "from": "turn_090",
+   "mirror": true
+  },
+  {
+   "name": "turn_300",
+   "from": "turn_060",
+   "mirror": true
+  },
+  {
+   "name": "turn_330",
+   "from": "turn_030",
+   "mirror": true
+  }
+ ],
+ "keep_from_old_kit": [
+  "rig (front idle layers: body, tail, ear_l, ear_r, blink_half, blink_closed, mouth_open)"
+ ],
+ "colour_reference": "S01 frame 1 (walk_1)",
+ "head_size_reference": "the old idle rig body (assets/rig/body.png)"
+}

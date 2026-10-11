@@ -1,0 +1,297 @@
+{
+ "version": 2,
+ "spriteHeightPx": 560,
+ "displayHeightPx": 230,
+ "yaw": "0 = facing viewer, +90 = facing screen right, 180 = back, -90 = facing screen left",
+ "ring": {
+  "canvas": [
+   429,
+   568
+  ],
+  "anchorX": 205,
+  "feetY": 564,
+  "ring": [
+   {
+    "yaw": -165,
+    "file": "ring/a7.png"
+   },
+   {
+    "yaw": -130,
+    "file": "ring/a8.png"
+   },
+   {
+    "yaw": -90,
+    "file": "ring/a9.png"
+   },
+   {
+    "yaw": -55,
+    "file": "ring/a2.png"
+   },
+   {
+    "yaw": -30,
+    "file": "ring/a11.png"
+   },
+   {
+    "yaw": 0,
+    "file": "ring/a0.png"
+   },
+   {
+    "yaw": 25,
+    "file": "ring/a10.png"
+   },
+   {
+    "yaw": 55,
+    "file": "ring/a2.png",
+    "flip": true
+   },
+   {
+    "yaw": 85,
+    "file": "ring/a3.png"
+   },
+   {
+    "yaw": 125,
+    "file": "ring/a4.png"
+   },
+   {
+    "yaw": 145,
+    "file": "ring/a5.png"
+   },
+   {
+    "yaw": 180,
+    "file": "ring/a6.png"
+   }
+  ],
+  "scale": 0.98
+ },
+ "rig": {
+  "w": 309,
+  "h": 550,
+  "anchorX": 131,
+  "feetY": 548,
+  "layers": {
+   "body": "rig/body.png",
+   "tail": "rig/tail.png",
+   "ear_l": "rig/ear_l.png",
+   "ear_r": "rig/ear_r.png"
+  },
+  "overlays": {
+   "blink_half": "rig/blink_half.png",
+   "blink_closed": "rig/blink_closed.png",
+   "mouth_open": "rig/mouth_open.png"
+  },
+  "pivots": {
+   "tail": [
+    252,
+    468
+   ],
+   "earL": [
+    32,
+    104
+   ],
+   "earR": [
+    234,
+    104
+   ]
+  },
+  "tailRotationLimits": [
+   -2,
+   24
+  ],
+  "note": "Draw order: tail, ear_l, ear_r, body, overlays. Positive tail angle swings the tip up and toward the body. Below -2 degrees a gap shows at the tail root."
+ },
+ "poses": {
+  "idle_a": {
+   "file": "poses/idle_a.png",
+   "w": 347,
+   "h": 552,
+   "anchorX": 130,
+   "feetY": 550,
+   "scale": 1
+  },
+  "idle_b": {
+   "file": "poses/idle_b.png",
+   "w": 253,
+   "h": 548,
+   "anchorX": 126,
+   "feetY": 546,
+   "scale": 1.05
+  },
+  "idle": {
+   "file": "poses/idle.png",
+   "w": 309,
+   "h": 550,
+   "anchorX": 131,
+   "feetY": 548,
+   "scale": 1.0
+  },
+  "look_tilt": {
+   "file": "poses/look_tilt.png",
+   "w": 311,
+   "h": 536,
+   "anchorX": 180,
+   "feetY": 534,
+   "scale": 0.93
+  },
+  "idle_tail_left": {
+   "file": "poses/idle_tail_left.png",
+   "w": 317,
+   "h": 530,
+   "anchorX": 184,
+   "feetY": 528,
+   "scale": 0.97
+  },
+  "calm_curled_tail": {
+   "file": "poses/calm_curled_tail.png",
+   "w": 341,
+   "h": 470,
+   "anchorX": 122,
+   "feetY": 468,
+   "scale": 1.1
+  },
+  "turn_left_3q": {
+   "file": "poses/turn_left_3q.png",
+   "w": 395,
+   "h": 476,
+   "anchorX": 125,
+   "feetY": 474,
+   "scale": 1.1
+  },
+  "happy_talk": {
+   "file": "poses/happy_talk.png",
+   "w": 399,
+   "h": 494,
+   "anchorX": 123,
+   "feetY": 492,
+   "scale": 1.1
+  },
+  "celebrate": {
+   "file": "poses/celebrate.png",
+   "w": 474,
+   "h": 486,
+   "anchorX": 222,
+   "feetY": 484,
+   "scale": 1.0
+  },
+  "annoyed_sit": {
+   "file": "poses/annoyed_sit.png",
+   "w": 424,
+   "h": 452,
+   "anchorX": 180,
+   "feetY": 450,
+   "scale": 1.0
+  },
+  "pleading": {
+   "file": "poses/pleading.png",
+   "w": 275,
+   "h": 444,
+   "anchorX": 125,
+   "feetY": 442,
+   "scale": 1.08
+  },
+  "sleep_small": {
+   "file": "poses/sleep_small.png",
+   "w": 377,
+   "h": 319,
+   "anchorX": 185,
+   "feetY": 317,
+   "scale": 0.95
+  },
+  "sit_drowsy": {
+   "file": "poses/sit_drowsy.png",
+   "w": 375,
+   "h": 419,
+   "anchorX": 229,
+   "feetY": 417,
+   "scale": 1.1
+  },
+  "yawn": {
+   "file": "poses/yawn.png",
+   "w": 383,
+   "h": 391,
+   "anchorX": 212,
+   "feetY": 389,
+   "scale": 1.05
+  },
+  "sleep_curl": {
+   "file": "poses/sleep_curl.png",
+   "w": 440,
+   "h": 291,
+   "anchorX": 223,
+   "feetY": 289,
+   "scale": 0.85
+  },
+  "sleep_curl_b": {
+   "file": "poses/sleep_curl_b.png",
+   "w": 446,
+   "h": 273,
+   "anchorX": 228,
+   "feetY": 271,
+   "scale": 0.88
+  },
+  "lying_wake": {
+   "file": "poses/lying_wake.png",
+   "w": 432,
+   "h": 285,
+   "anchorX": 192,
+   "feetY": 283,
+   "scale": 0.95
+  },
+  "stretch": {
+   "file": "poses/stretch.png",
+   "w": 399,
+   "h": 456,
+   "anchorX": 190,
+   "feetY": 454,
+   "scale": 1.1
+  },
+  "walk_a": {
+   "file": "poses/walk_a.png",
+   "w": 540,
+   "h": 387,
+   "anchorX": 338,
+   "feetY": 385,
+   "scale": 1.1
+  },
+  "walk_b": {
+   "file": "poses/walk_b.png",
+   "w": 476,
+   "h": 369,
+   "anchorX": 300,
+   "feetY": 367,
+   "scale": 1.15
+  },
+  "jump_happy": {
+   "file": "poses/jump_happy.png",
+   "w": 417,
+   "h": 417,
+   "anchorX": 268,
+   "feetY": 415,
+   "scale": 1.05
+  },
+  "annoyed_crouch": {
+   "file": "poses/annoyed_crouch.png",
+   "w": 524,
+   "h": 379,
+   "anchorX": 262,
+   "feetY": 377,
+   "scale": 1.0
+  },
+  "curious_crouch": {
+   "file": "poses/curious_crouch.png",
+   "w": 484,
+   "h": 387,
+   "anchorX": 203,
+   "feetY": 385,
+   "scale": 0.92
+  }
+ },
+ "walk": {
+  "right": [
+   "walk_a",
+   "walk_b"
+  ],
+  "strideDisplayPx": 34,
+  "note": "Only 2 walk frames exist. Mirror for left."
+ },
+ "scaleNote": "Per-pose \"scale\" makes the head the same size as the idle rig. The pose sheet draws some poses with different proportions, so scales were matched by eye distance and checked visually."
+}

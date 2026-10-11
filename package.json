@@ -1,0 +1,20 @@
+{
+  "name": "tokku",
+  "version": "0.1.0",
+  "description": "Tokku, a small mongoose desktop companion that helps you stay focused.",
+  "author": "Shubhanshu Sahu",
+  "private": true,
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node src/renderer/character/tests/brain.test.js"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "@notionhq/client": "^5.27.0",
+    "get-windows": "^9.3.0"
+  }
+}

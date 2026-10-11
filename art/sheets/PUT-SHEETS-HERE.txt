@@ -1,0 +1,23 @@
+Put your 21 original sprite sheet PNGs in this folder with exactly these names:
+
+S01_walk_A.png
+S02_walk_B.png
+S03_walk_start_stop.png
+S04_turn_A.png
+S05_turn_B.png
+S06_sit_to_sleep.png
+S07_sleep_loop.png
+S08B_wake_inbetween.png
+S08_wake_up.png
+S09_attention.png
+S10_bargain.png
+S11_surprise.png
+S12_joy.png
+S13_investigate.png
+S14_task_done.png
+S15_annoyed.png
+S16_dragged.png
+S17_quiet.png
+S18_break.png
+S19_away.png
+S20_mouth_shapes.png

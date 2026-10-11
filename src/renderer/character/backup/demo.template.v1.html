@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tokku Motion Test</title>
+<style>
+:root{--bg:#10131c;--ink:#e9ecf5;--mut:#98a0b5;--acc:#ff9d2e;--card:#1a1f2d;--line:#2a3144}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
+#wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px}
+#stageBox{width:min(100vw - 20px,1280px);aspect-ratio:16/9;position:relative;overflow:hidden;border-radius:10px}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;background:radial-gradient(ellipse at 80% 10%,#3a4a7a 0,#1b2240 45%,#0e1226 100%)}
+.win{position:absolute;background:#fff;border-radius:10px;box-shadow:0 14px 40px #0008;overflow:hidden;color:#222}
+.win .bar{height:30px;background:#eceef3;display:flex;align-items:center;gap:6px;padding:0 10px;font-size:12px;color:#555}
+.dot{width:10px;height:10px;border-radius:50%;background:#ccc}
+#notion{left:40px;top:60px;width:700px;height:540px}
+#notion .body{padding:22px 28px}
+#notion h2{margin:0 0 12px;font-size:22px}
+.row{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid #eee;font-size:14px}
+.tag{font-size:11px;padding:1px 7px;border-radius:9px;background:#ffe3d1;color:#b3410a}
+.tag.g{background:#e3f1e6;color:#2b6a3a}
+#yt{left:430px;top:150px;width:560px;height:400px;display:none;background:#0f0f0f;color:#fff}
+#yt .bar{background:#202020;color:#bbb}
+#yt .vid{height:300px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2b2b3a,#14141c)}
+#yt .play{width:84px;height:58px;border-radius:14px;background:#f00;position:relative}
+#yt .play:after{content:"";position:absolute;left:34px;top:17px;border-left:22px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent}
+#yt .t{padding:10px 14px}
+#taskbar{position:absolute;left:0;right:0;bottom:0;height:46px;background:#0b0e18cc;border-top:1px solid #ffffff18}
+canvas{position:absolute;left:0;top:0;pointer-events:none}
+#bubble{position:absolute;max-width:290px;background:#fff;color:#1c1f2b;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.35;box-shadow:0 8px 24px #0006;display:none;transform:translate(-50%,-100%)}
+#bubble:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+#bubble .btns{display:flex;gap:8px;margin-top:8px}
+#bubble button{border:0;border-radius:9px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;background:#ff9d2e;color:#2a1600}
+#bubble button.s{background:#e8eaf1;color:#333}
+#badge{position:absolute;right:16px;top:12px;background:#0007;color:#cfd5e6;font-size:12px;padding:4px 10px;border-radius:99px}
+#ctl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#ctl button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font:inherit;cursor:pointer}
+#ctl button:hover{border-color:var(--acc)}
+#ctl button.p{background:var(--acc);color:#2a1600;border-color:var(--acc);font-weight:600}
+small{color:var(--mut)}
+</style></head><body>
+<div id="wrap">
+ <div id="stageBox"><div id="stage">
+  <div class="win" id="notion"><div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; Tasks (Notion)</div>
+   <div class="body"><h2>Today</h2>
+    <div class="row"><b>Finish DJX concept PDF</b><span class="tag">HIGH</span><span style="margin-left:auto;color:#888">Due today</span></div>
+    <div class="row">Record demo video <span class="tag g">Working</span><span style="margin-left:auto;color:#888">13 Oct</span></div>
+    <div class="row">Update Notion project page<span style="margin-left:auto;color:#888">12 Oct</span></div>
+    <div class="row">Submit on DJX form<span style="margin-left:auto;color:#888">14 Oct</span></div></div></div>
+  <div class="win" id="yt"><div class="bar">&nbsp; YouTube</div><div class="vid"><div class="play"></div></div><div class="t">Trending: 10 hour lo-fi mix</div></div>
+  <div id="taskbar"></div>
+  <canvas id="c" width="1280" height="720"></canvas>
+  <div id="bubble"></div>
+  <div id="badge">Simulated desktop. Character motion is real.</div>
+ </div></div>
+ <div id="ctl">
+  <button class="p" data-a="auto">Play full scene</button>
+  <button data-a="yt">Open YouTube</button>
+  <button data-a="break">Pomodoro break</button>
+  <button data-a="quiet">Quiet mode on/off</button>
+  <button data-a="drag">Drag him away</button>
+  <button data-a="look">Turn around (360)</button>
+  <button data-a="talk">Talk bob</button>
+  <button data-a="home">Reset</button>
+ </div>
+ <small>All 12 turn angles come from the character sheet. This page is the motion test for the Windows build.</small>
+</div>
+<script>
+const META=/*__META__*/null, IMAGES_B64=/*__IMAGES__*/null;
+</script>
+<script>/*__ENGINE__*/</script>
+<script>
+const $=s=>document.querySelector(s);
+const stage=$('#stage'),box=$('#stageBox');
+function fit(){const k=box.clientWidth/1280;stage.style.transform='scale('+k+')';box.style.height=(720*k)+'px'}
+addEventListener('resize',fit);fit();
+const cv=$('#c'),ctx=cv.getContext('2d');
+const imgs={};let loaded=0;const names=Object.keys(IMAGES_B64);
+names.forEach(n=>{const i=new Image();i.onload=()=>{if(++loaded===names.length)start()};i.src='data:image/png;base64,'+IMAGES_B64[n];imgs[n]=i});
+let T,HOME={x:1120,y:372},FWD={x:560,y:470};
+const bub=$('#bubble');
+function say(text,btns,cb){bub.style.display='block';bub.innerHTML='';const p=document.createElement('div');p.style.position='relative';const ghost=document.createElement('div');ghost.textContent=text;ghost.style.visibility='hidden';const typed=document.createElement('div');typed.style.cssText='position:absolute;left:0;top:0;right:0';p.appendChild(ghost);p.appendChild(typed);bub.appendChild(p);
+ let i=0;T.talk(true);const iv=setInterval(()=>{typed.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(iv);T.talk(false);
+  if(btns){const d=document.createElement('div');d.className='btns';btns.forEach((b,k)=>{const e=document.createElement('button');e.textContent=b.t;if(k)e.className='s';e.onclick=b.f;d.appendChild(e)});bub.appendChild(d)}
+  if(cb)cb()}},28);}
+function hide(){bub.style.display='none'}
+function place(){bub.style.left=T.x+'px';bub.style.top=(T.groundY-232-(T.hopY||0))+'px'}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const arrive=(x,y)=>new Promise(r=>{T.targetGround=y;T.walkTo(x,r)});
+let busy=false;
+async function home(){hide();$('#yt').style.display='none';T.quiet(false);await arrive(HOME.x,HOME.y);T.faceYaw(0)}
+async function yt(){ if(busy)return;busy=true;$('#yt').style.display='block';await wait(400);T.attention();await wait(1300);
+ await arrive(FWD.x,FWD.y);T.faceYaw(0);await wait(300);
+ await new Promise(r=>say("That's YouTube. Your top task is 'Finish DJX concept PDF'.",null,r));await wait(900);
+ await new Promise(r=>say("Five more minutes, then back to it?",[{t:'Okay, 5 min',f:()=>{window._ok&&window._ok()}},{t:'Back to work now',f:()=>{window._ok&&window._ok()}}],r));
+ await new Promise(r=>{window._ok=r;if(AUTO)setTimeout(r,1600)});
+ await new Promise(r=>say("Deal. I'll be back in 5.",null,r));await wait(900);hide();$('#yt').style.display='none';await arrive(HOME.x,HOME.y);T.faceYaw(0);busy=false}
+async function brk(){ if(busy)return;busy=true;T.attention();await wait(1200);
+ await new Promise(r=>say("You haven't taken a break. Please take a 5 minute break.",null,r));await wait(2200);hide();busy=false}
+async function quiet(){const on=!T.quietOn;T.quiet(on);$('#badge').textContent=on?'Quiet mode: in a call. Tokku is silent.':'Simulated desktop. Character motion is real.'}
+async function drag(){ if(busy)return;busy=true;T.attention();await wait(1000);await arrive(700,430);T.faceYaw(0);await wait(500);hide();
+ await new Promise(r=>say("Nope. Back to my corner.",null,r));await wait(700);hide();await arrive(HOME.x,HOME.y);T.faceYaw(0);busy=false}
+async function look(){ for(const y of [-30,-55,-90,-130,-165,180,145,125,85,55,25,0]){T.faceYaw(y);await wait(300)} }
+async function talk(){ say("This is the talk bounce. It plays while he speaks.",null,()=>setTimeout(hide,1500)) }
+let AUTO=false;
+async function auto(){AUTO=true;busy=false;await yt();await wait(1200);await brk();await wait(800);quiet();await wait(2600);quiet();await wait(1500);await look();AUTO=false}
+const act={auto,yt,break:brk,quiet,drag,look,talk,home};
+document.querySelectorAll('#ctl button').forEach(b=>b.onclick=()=>act[b.dataset.a]());
+function start(){
+ T=new TokkuSprite(cv,Object.assign({},META,{extras:META.extras}),imgs);
+ T.x=HOME.x;T.groundY=HOME.y;T.targetGround=HOME.y;T.faceNow(0);
+ // ease groundY toward targetGround during update
+ const up=T.update.bind(T);T.update=function(dt){up(dt);this.groundY+=(this.targetGround-this.groundY)*Math.min(1,dt*3)};
+ let last=performance.now();
+ (function loop(n){const dt=(n-last)/1000;last=n;T.update(dt);ctx.clearRect(0,0,1280,720);T.draw(ctx);place();requestAnimationFrame(loop)})(last);
+ if(location.search.includes('auto=1'))setTimeout(auto,1200);
+ window.__T=T;
+}
+</script></body></html>

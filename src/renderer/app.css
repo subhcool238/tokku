@@ -1,0 +1,4 @@
+html, body { margin: 0; height: 100%; background: #2b2f3a; overflow: hidden; }
+body { display: flex; flex-direction: column; align-items: center; font: 13px system-ui, sans-serif; color: #c9cfdd; }
+#stage { display: block; }
+#status { margin: 4px 0 0; }
