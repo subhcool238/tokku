@@ -1148,23 +1148,11 @@ window.TOKKU_CHARACTER = {
   "rest": {
    "frames": [
     {
-     "pose": "break_stretch",
-     "ms": 900
-    },
-    {
-     "pose": "break_yawn",
-     "ms": 1100
-    },
-    {
      "pose": "break_sit_relaxed",
-     "ms": 60000
-    },
-    {
-     "pose": "break_lie_rest",
      "ms": 0
     }
    ],
-   "hold": "break_lie_rest"
+   "hold": "break_sit_relaxed"
   },
   "stretch_up": {
    "frames": [

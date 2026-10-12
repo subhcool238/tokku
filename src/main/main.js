@@ -1,4 +1,4 @@
-/* Tokku main process ("Guard"). Phase 1: Tokku lives in the top right corner of the desktop.
+/* Tokku main process ("Guard"). Tokku lives in the bottom right corner of the desktop.
    - transparent, frameless window, not on the taskbar, never takes keyboard focus
    - NOT always on top: other windows cover him. He comes forward only when the renderer asks.
    - click-through everywhere except on the character and his buttons
@@ -54,7 +54,7 @@ function lockDownSession() {
 
 function homePosition() {
   const a = screen.getPrimaryDisplay().workArea;
-  return { x: a.x + a.width - WIN.width - WIN.margin, y: a.y + WIN.margin };
+  return { x: a.x + a.width - WIN.width - WIN.margin, y: a.y + a.height - WIN.height - WIN.margin };      // bottom right, above the taskbar
 }
 
 function send(ev) { if (win && !win.isDestroyed()) win.webContents.send('guard:event', ev); }
@@ -66,7 +66,8 @@ function createWindow() {
     title: 'Tokku', show: false,
     transparent: true, frame: false, resizable: false, maximizable: false, minimizable: false, fullscreenable: false,
     skipTaskbar: true, focusable: false, hasShadow: false, alwaysOnTop: false,
-    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload.js'),
+      backgroundThrottling: false },                                // he must keep thinking while a window covers him
   });
   win.setIgnoreMouseEvents(true, { forward: true });             // clicks pass through to whatever is behind him
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -82,6 +83,19 @@ function createWindow() {
         const r = await win.webContents.executeJavaScript(
           "({ status: window.__tokkuStatus ? window.__tokkuStatus() : 'no status', png: document.getElementById('stage').toDataURL('image/png') })");
         fs.writeFileSync(shot, Buffer.from(r.png.split(',')[1], 'base64'));
+        // act out a distraction: 50 s of YouTube in front, then closed. Checks that he really comes forward and goes back.
+        const wait = (ms) => new Promise(res => setTimeout(res, ms)), js = (code) => win.webContents.executeJavaScript(code);
+        const probe = [];
+        probe.push('before: onTop ' + win.isAlwaysOnTop());
+        await js("window.__tokku.brain.activity('video', 'YouTube', 50)"); await wait(1500);
+        probe.push('YouTube 50 s: onTop ' + win.isAlwaysOnTop() + ', bubble \"' + await js("document.getElementById('bubble-text').textContent") + '\", buttons ' + await js("[...document.querySelectorAll('#bubble-acts button')].map(b => b.textContent).join(' / ')") + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        await js("window.__tokku.brain.choose('bargain')"); await wait(2500);
+        probe.push('5 more minutes: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        await js("window.__tokku.brain.activity('work', null, 3)"); await wait(1000);
+        probe.push('closed, 1 s later: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        await wait(3200);
+        probe.push('closed, 4 s later: onTop ' + win.isAlwaysOnTop());
+        r.status += ' | PROBE ' + probe.join(' ; ');
         fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + win.isAlwaysOnTop() + ' | focusable ' + win.isFocusable() + ' | sensed ' + JSON.stringify(state.lastReport || null));
       } catch (err) { fs.writeFileSync(shot + '.txt', 'SELF-TEST ERROR: ' + err.message); }
       app.quit();
@@ -93,7 +107,7 @@ function createWindow() {
 ipcMain.on('tokku:hover', (e, on) => { if (win && !win.isDestroyed()) win.setIgnoreMouseEvents(!on, { forward: true }); });
 ipcMain.on('tokku:front', (e, on) => {
   if (!win || win.isDestroyed()) return;
-  if (on) { win.setAlwaysOnTop(true, 'screen-saver'); win.showInactive(); }      // come forward without taking focus
+  if (on) { win.setAlwaysOnTop(true, 'screen-saver'); win.showInactive(); win.moveTop(); }      // come forward without taking focus
   else win.setAlwaysOnTop(false);                                                 // back to normal desktop level
 });
 
@@ -137,6 +151,12 @@ function createTray() {
   buildTray();
   tray.on('click', () => tray.popUpContextMenu());
 }
+
+// Windows pauses a window that is completely covered. Tokku is covered most of the time, and must still be able
+// to notice a distraction and come forward, so that pausing is switched off.
+app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
 if (!app.requestSingleInstanceLock()) app.quit();
 else {

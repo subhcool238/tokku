@@ -95,7 +95,9 @@
   });
   document.addEventListener('mouseleave', () => setOver(false));
   window.addEventListener('mousedown', (e) => {                   // clicking him while he sleeps wakes him up
-    if (brain.state === 'meal' && onCharacter(e.clientX, e.clientY)) brain.endMeal();
+    if (!onCharacter(e.clientX, e.clientY)) return;
+    if (brain.state === 'meal') brain.endMeal();
+    else if (brain.state === 'break') brain.breakOver();          // and clicking him on a break ends the break
   });
 
   // ---------- events from Guard (tray menu now; sensing arrives in Phase 2) ----------
@@ -104,7 +106,11 @@
     if (ev.type === 'activity') {
       idleSec = ev.idle;
       lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
-      if (performance.now() >= pausedUntil) brain.activity(ev.idle < 60 ? ev.category : 'other', ev.app, ev.dt);   // a video only counts while you are there
+      // Watching a video means no mouse and no keyboard, so idle time must not end a distraction.
+      // Only a very long idle (30 min: the video is playing to an empty chair) or a locked screen does.
+      const there = !ev.locked && ev.idle < 1800;
+      if (performance.now() >= pausedUntil) brain.activity(there ? ev.category : 'other', ev.app, ev.dt);
+      step();                                                       // react at once, even if the window is covered
       if (ev.idle >= 300 && brain.state === 'focusing' && brain.timer && brain.timer.kind === 'focus') brain._setTimer('focus', brain.o.focusMin);   // 5 idle minutes count as a break
     }
     else if (ev.type === 'back') { if (ev.minutes >= 30 && !brain.quiet && brain.state !== 'meal') { ch.welcomeBack(); brain.say('welcome_back'); } }
@@ -118,10 +124,12 @@
   brain.startFocus();
   let last = performance.now();
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    ch.update(dt);
-    if (now >= pausedUntil && idleSec < 60) brain.tick(dt * 1000);  // timers stand still during Pause 15 min and while you are away from the keyboard
-    else if (now >= pausedUntil && brain.state !== 'focusing') brain.tick(dt * 1000);   // breaks and meals keep counting while you are away
+    const elapsed = Math.min(5, Math.max(0, (now - last) / 1000)); last = now;      // real time, even if frames were skipped while covered
+    for (let left = elapsed; left > 0.0005; left -= 0.05) ch.update(Math.min(0.05, left));
+    // The focus timer only counts while you are at the keyboard. Everything else (breaks, meals, the five minutes
+    // of a video) counts in real time. Pause 15 min stops all of it.
+    const working = brain.state === 'focusing' && !brain.dist.app;
+    if (now >= pausedUntil && !(working && idleSec >= 60)) brain.tick(elapsed * 1000);
     if (debugOn) $('debug').textContent = lastSense + ' | ' + brain.state + (brain.timer ? ' ' + brain.timer.kind + ' ' + Math.ceil((brain.timer.endsAt - brain.t) / 1000) + ' s' : '');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ch.draw(ctx);
@@ -129,6 +137,9 @@
     updateFront(now);
     status = 'running, ' + Object.keys(images).length + ' images, brain ' + brain.state + ', picture ' + (ch.visual.name || ch.visual.type);
   }
-  function loop(now) { frame(now); requestAnimationFrame(loop); }
-  frame(last); requestAnimationFrame(loop);
+  window.__tokku = { brain, ch };                                 // for the self-test in src/main/main.js
+  function step() { frame(performance.now()); }
+  function loop() { step(); requestAnimationFrame(loop); }
+  step(); requestAnimationFrame(loop);
+  setInterval(step, 250);                                         // keeps him thinking when the window is covered and frames stop
 })();

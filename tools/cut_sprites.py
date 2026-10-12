@@ -560,8 +560,7 @@ SEQUENCES = {
     "thanks": seq(("accept_thumbs", 1300), end="rig"),       # thumbs up when you go back to work
     "sigh": seq(("away_sigh", 1600), end="rig"),             # a question he asked got no answer
     "sulk": seq(("sulk", 1500), end="rig"),
-    "rest": seq(("break_stretch", 900), ("break_yawn", 1100), ("break_sit_relaxed", 60000), ("break_lie_rest", 0),
-                hold="break_lie_rest"),
+    "rest": seq(("break_sit_relaxed", 0), hold="break_sit_relaxed"),      # one relaxed pose for the whole break
     "stretch_up": seq(("break_stretch", 1000), end="rig"),
     "sleep_in": seq(("sleepy_stand", 500), ("yawn_sit", 750), ("drowsy_sit", 650)),   # then the engine shows sleep_curl and loops
     "wake": seq(("wake_yawn_lying", 600), ("wake_sit_rub", 600), ("stretch_up", 650), end="rig"),   # no second curled up pose
