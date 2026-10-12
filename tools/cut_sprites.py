@@ -556,12 +556,12 @@ SEQUENCES = {
     "rest": seq(("break_stretch", 900), ("break_yawn", 1100), ("break_sit_relaxed", 60000), ("break_lie_rest", 0),
                 hold="break_lie_rest"),
     "stretch_up": seq(("break_stretch", 900), ("awake_front", 500), end="rig"),
-    "sleep_in": seq(("sleepy_stand", 900), ("yawn_sit", 1200), ("drowsy_sit", 1300), ("sleep_curl", 800)),
+    "sleep_in": seq(("sleepy_stand", 800), ("yawn_sit", 1100), ("drowsy_sit", 1100)),   # then the engine shows sleep_curl and loops
     "sleep_loop": seq(("sleep_breathe_in", 1600), ("sleep_breathe_out", 1600), loop=True,
                       extras=[{"pose": "sleep_ear_twitch", "ms": 500, "chance": 0.12},
                               {"pose": "sleep_tail_curl", "ms": 1200, "chance": 0.08}]),
-    "wake": seq(("wake_ear_lift", 450), ("wake_peek", 550), ("wake_yawn_lying", 800), ("wake_lying", 500),
-                ("wake_sit_rub", 700), ("stretch_up", 600), ("awake_front", 400), end="rig"),
+    "wake": seq(("wake_ear_lift", 400), ("wake_peek", 500), ("wake_yawn_lying", 750), ("wake_lying", 450),
+                ("wake_sit_rub", 650), ("stretch_up", 550), ("awake_front", 350), end="rig"),
     "celebrate": seq(("joy_excited", 450), ("joy_jump", 450), ("done_checkmark", 1200), ("done_proud", 900),
                      end="rig", hop={"at": "joy_jump", "heightPx": 14}),
     "annoyed_1": seq(("annoyed_mild", 1600), end="rig"),
@@ -623,6 +623,15 @@ def contact_sheet(frames, S, ref, unsure):
     REVIEW.mkdir(parents=True, exist_ok=True)
     img.save(REVIEW / "contact-sheet.png")
     return img.size
+
+
+def write_character(char):
+    """Save character.json, plus the same data as a script so review pages work when opened as a file."""
+    text = json.dumps(char, indent=1)
+    CHAR_JSON.write_text(text + "\n", encoding="utf-8")
+    (ASSETS / "character.data.js").write_text(
+        "/* Generated from character.json by the tools in tools/. Do not edit. */\nwindow.TOKKU_CHARACTER = " + text + ";\n",
+        encoding="utf-8")
 
 
 # ---------------------------------------------------------------- main run
@@ -815,12 +824,12 @@ def main():
                               "feetY": poses[n]["feetY"], "scale": poses[n]["scale"]}
                              for n, y in sorted(YAW.items(), key=lambda kv: kv[1])]}
     char["walk"] = {"right": WALK8, "start": ["walk_start_lean", "walk_start_step"], "stop": ["walk_stop_slow", "side_idle"],
-                    "strideDisplayPx": 34, "note": "8 frame cycle facing right, advanced by distance. Mirror for left."}
+                    "framePx": 9, "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."}
     char["sequences"] = SEQUENCES
     char["scaleNote"] = ("Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest "
                          "circle that fits in the head. Manual corrections: art/scale-overrides.json.")
     char["legacyNote"] = "Poses marked legacy are the old art in assets/_old. The engine uses them until Phase 1B."
-    CHAR_JSON.write_text(json.dumps(char, indent=1) + "\n", encoding="utf-8")
+    write_character(char)
 
     # ---- contact sheet
     order = [n for sid in by_sheet for n in by_sheet[sid]] + [d["name"] for d in m.get("derived", [])]

@@ -105,40 +105,42 @@
   ]
  },
  "rig": {
-  "w": 309,
-  "h": 550,
-  "anchorX": 131,
-  "feetY": 548,
+  "w": 479,
+  "h": 668,
+  "anchorX": 244,
+  "feetY": 636,
+  "scale": 0.786,
   "layers": {
-   "body": "rig/body.png",
-   "tail": "rig/tail.png",
-   "ear_l": "rig/ear_l.png",
-   "ear_r": "rig/ear_r.png"
+   "body": "rig_v3/body.png",
+   "tail": "rig_v3/tail.png",
+   "ear_l": "rig_v3/ear_l.png",
+   "ear_r": "rig_v3/ear_r.png"
   },
   "overlays": {
-   "blink_half": "rig/blink_half.png",
-   "blink_closed": "rig/blink_closed.png",
-   "mouth_open": "rig/mouth_open.png"
+   "blink_half": "rig_v3/blink_half.png",
+   "blink_closed": "rig_v3/blink_closed.png",
+   "mouth_open": "rig_v3/mouth_open.png"
   },
   "pivots": {
    "tail": [
-    252,
-    468
+    195,
+    581
    ],
    "earL": [
-    32,
-    104
+    156,
+    164
    ],
    "earR": [
-    234,
-    104
+    413,
+    154
    ]
   },
   "tailRotationLimits": [
    -2,
-   24
+   14
   ],
-  "note": "Draw order: tail, ear_l, ear_r, body, overlays. Positive tail angle swings the tip up and toward the body. Below -2 degrees a gap shows at the tail root."
+  "tailSign": -1,
+  "note": "Art v3 idle. Draw order: tail, ear_l, ear_r, body, overlays. The tail is on the left, so tailSign is -1. Blink and mouth overlays are soft-edged patches cut from the other idle drawings."
  },
  "poses": {
   "walk_1": {
@@ -994,8 +996,8 @@
    "walk_stop_slow",
    "side_idle"
   ],
-  "strideDisplayPx": 34,
-  "note": "8 frame cycle facing right, advanced by distance. Mirror for left."
+  "framePx": 9,
+  "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
  "sequences": {
@@ -1142,19 +1144,15 @@
    "frames": [
     {
      "pose": "sleepy_stand",
-     "ms": 900
+     "ms": 800
     },
     {
      "pose": "yawn_sit",
-     "ms": 1200
+     "ms": 1100
     },
     {
      "pose": "drowsy_sit",
-     "ms": 1300
-    },
-    {
-     "pose": "sleep_curl",
-     "ms": 800
+     "ms": 1100
     }
    ]
   },
@@ -1187,31 +1185,31 @@
    "frames": [
     {
      "pose": "wake_ear_lift",
-     "ms": 450
+     "ms": 400
     },
     {
      "pose": "wake_peek",
-     "ms": 550
-    },
-    {
-     "pose": "wake_yawn_lying",
-     "ms": 800
-    },
-    {
-     "pose": "wake_lying",
      "ms": 500
     },
     {
+     "pose": "wake_yawn_lying",
+     "ms": 750
+    },
+    {
+     "pose": "wake_lying",
+     "ms": 450
+    },
+    {
      "pose": "wake_sit_rub",
-     "ms": 700
+     "ms": 650
     },
     {
      "pose": "stretch_up",
-     "ms": 600
+     "ms": 550
     },
     {
      "pose": "awake_front",
-     "ms": 400
+     "ms": 350
     }
    ],
    "end": "rig"
@@ -1385,5 +1383,42 @@
    "end": "rig"
   }
  },
- "legacyNote": "Poses marked legacy are the old art in assets/_old. The engine uses them until Phase 1B."
+ "legacyNote": "Poses marked legacy are the old art in assets/_old. The engine uses them until Phase 1B.",
+ "rig_old": {
+  "w": 309,
+  "h": 550,
+  "anchorX": 131,
+  "feetY": 548,
+  "layers": {
+   "body": "rig/body.png",
+   "tail": "rig/tail.png",
+   "ear_l": "rig/ear_l.png",
+   "ear_r": "rig/ear_r.png"
+  },
+  "overlays": {
+   "blink_half": "rig/blink_half.png",
+   "blink_closed": "rig/blink_closed.png",
+   "mouth_open": "rig/mouth_open.png"
+  },
+  "pivots": {
+   "tail": [
+    252,
+    468
+   ],
+   "earL": [
+    32,
+    104
+   ],
+   "earR": [
+    234,
+    104
+   ]
+  },
+  "tailRotationLimits": [
+   -2,
+   24
+  ],
+  "note": "Draw order: tail, ear_l, ear_r, body, overlays. Positive tail angle swings the tip up and toward the body. Below -2 degrees a gap shows at the tail root.",
+  "note2": "Old idle rig (art v2), kept for reference. Files are in assets/rig."
+ }
 }

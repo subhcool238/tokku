@@ -18,7 +18,7 @@ const states = b => b.log.map(e => e.ev);
   { const { ch, b, said, run } = make();
     b.startFocus(); check('1a focus starts', b.state === 'focusing' && b.timer.kind === 'focus');
     await run(2, 60 * 13); check('1b focus end -> attention with break/extend buttons', b.state === 'attention' && said.at(-1).actions.join() === 'break,extend', said.at(-1).text);
-    b.choose('break'); await run(1); check('1c break state, rest pose', b.state === 'break' && ch.visual.name === 'calm_curled_tail');
+    b.choose('break'); await run(1); check('1c break state, rest pose', b.state === 'break' && /^break_/.test(ch.visual.name));
     await run(1, 60 * 6); check('1d break end -> attention, resume button', b.state === 'attention' && said.at(-1).actions.join() === 'resume', said.at(-1).text);
     await run(3); check('1e stretch then idle rig', ch.visual.type === 'rig');
     b.choose('resume'); check('1f back to focusing', b.state === 'focusing' && b.timer.kind === 'focus');
@@ -36,7 +36,7 @@ const states = b => b.log.map(e => e.ev);
   for (const meal of ['breakfast', 'lunch', 'dinner']) {
     const { ch, b, said, run } = make();
     b.startFocus(); await run(0.2); b.startMeal(meal);
-    await run(4); check(`3 ${meal}: sleeping pose with curled tail`, b.state === 'meal' && ch.visual.name === 'sleep_curl' && ch.sleeping);
+    await run(4); check(`3 ${meal}: sleeping pose with curled tail`, b.state === 'meal' && /^sleep_/.test(ch.visual.name) && ch.sleeping);
     check(`3 ${meal}: phone away ping suppressed`, b.awayPingAllowed() === false);
     const n = said.length; await run(2, 60 * 25); check(`3 ${meal}: no focus reminders during meal`, said.slice(n).length === 0 && b.state === 'meal');
     await run(1, 60 * 12); await run(4); check(`3 ${meal}: wake -> stretch -> idle, welcome line`, b.state === 'idle' && ch.visual.type === 'rig' && /back|good/i.test(said.at(-1).text), said.at(-1).text);
@@ -68,7 +68,7 @@ const states = b => b.log.map(e => e.ev);
   }
   // 8. task done
   { const { ch, b, run } = make(); b.startFocus(); await run(0.5); b.taskDone(); await run(1);
-    check('8 task done: celebrate pose', ['celebrate', 'jump_happy'].includes(ch.visual.name));
+    check('8 task done: celebrate pose', ['joy_excited', 'joy_jump', 'done_checkmark'].includes(ch.visual.name));
     await run(4); check('8 back to focusing after celebration', b.state === 'focusing');
   }
   console.log(results.join('\n')); console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

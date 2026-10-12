@@ -1,15 +1,16 @@
-/* Tokku character engine v2 (2.5D, no dependencies).
-   Replaces tokku-sprite.js (v1 is kept in backup/).
+/* Tokku character engine v3 (2.5D, no dependencies).
+   v3 adds frame sequences for art v3 (character.json "sequences"), an 8 frame walk, a 12 view
+   turn and the drag, welcome back, surprise and point actions. v2 is kept in backup/.
 
    What it does:
    - "Rig" idle: the front idle pose split into layers (body, tail, two ears) plus
      overlays (blink half, blink closed, mouth open). The body stays still while the
      eyes blink, ears twitch, tail moves by mood and the mouth flaps while talking.
    - Turn ring: 12 views from the turnaround sheet, stepped with short crossfades.
-   - Poses: 23 single poses from the pose sheet (sleep, yawn, stretch, happy, annoyed...).
+   - Poses: single frames cut from the art v3 sheets, played in order as sequences (play(name)).
    - Every visual change is a crossfade, so nothing pops.
-   - Walking: anticipation, turn, eased speed, 2-frame walk cycle advanced by distance
-     (not by time) so feet do not slide, small bob, settle on arrival.
+   - Walking: turn, start frames, eased speed, 8 frame walk cycle advanced by distance
+     (not by time) so feet do not slide, stop frames, turn back to the front.
    - All actions are cancellable: starting a new action cleanly stops the old one.
 
    Host usage:
@@ -56,6 +57,7 @@
       this.sleeping = false; this.zs = []; this.zClock = 0;
       this.walk = null; this.mode = 'idle';
       this.minimalMotion = false; // focus sessions: fewer ear twitches, no extra movement
+      this.varietyClock = 40 + Math.random() * 50;   // idle variety (a thought, a look around), never while focusing
       // offscreen buffer so layered drawing fades as one image
       const doc = root.document;
       this.buf = doc ? doc.createElement('canvas') : null;
@@ -74,10 +76,33 @@
       this.prev = fadeMs > 0 ? { visual: this.visual, t0: this.time, dur: fadeMs / 1000 } : null;
       this.visual = v;
     }
-    pose(name, fadeMs = 140, flip = false) {
+    pose(name, fadeMs = 140, flip = false, keepYaw = false) {
       const p = this.c.poses[name]; if (!p) { console.warn('missing pose', name); return; }
-      if (!name.startsWith('walk')) { this.yaw = 0; if (this.visual.type !== 'pose' || this.visual.name !== name) this.squashV += 2.2; }  // small squash hides the swap
+      if (!keepYaw) { this.yaw = 0; if (this.visual.type !== 'pose' || this.visual.name !== name) this.squashV += 2.2; }  // small squash hides the swap
       this.setVisual({ type: 'pose', name, flip }, fadeMs);
+    }
+
+    // ---------- sequences (character.json "sequences") ----------
+    // Plays the frames of a sequence inside the current action. Returns false if another action took over.
+    async _run(name, tk) {
+      const q = this.c.sequences && this.c.sequences[name]; if (!q) { console.warn('missing sequence', name); return true; }
+      let first = true;
+      for (const f of q.frames) {
+        this.pose(f.pose, first ? 150 : 80); first = false;        // 150 ms from an unrelated picture, 80 ms inside a sequence
+        if (q.hop && q.hop.at === f.pose) this.hop(q.hop.heightPx, Math.max(260, f.ms - 60));
+        if (q.hold === f.pose) return true;                         // stays on this frame until the next action
+        await this.wait(f.ms); if (!this._alive(tk)) return false;
+      }
+      if (q.end === 'rig') this.rig(150);
+      return true;
+    }
+    // Public: play one sequence by name as its own action.
+    async play(name) {
+      const tk = this._begin(); this.sleeping = false; this.mode = 'playing'; this.leanTarget = 0;
+      if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
+      const ok = await this._run(name, tk);
+      if (ok && (this.c.sequences[name] || {}).end === 'rig') this.mode = 'idle';
+      return ok;
     }
     rig(fadeMs = 150) { this.setVisual({ type: 'rig' }, fadeMs); this.yaw = 0; }
     ringIdx(yaw) { let b = 0, bd = 1e9; this.ring.forEach((r, i) => { const d = Math.abs(angDiff(r.yaw, yaw)); if (d < bd) { bd = d; b = i; } }); return b; }
@@ -97,9 +122,9 @@
       while (idx !== want) {
         const plus = ((this.ring[want].yaw - this.ring[idx].yaw) + 360) % 360;
         idx = (idx + (plus <= 180 ? 1 : -1) + n) % n;
-        this.setVisual({ type: 'ring', idx }, 90);
+        this.setVisual({ type: 'ring', idx }, 80);
         this.yaw = this.ring[idx].yaw;
-        await this.wait(85); if (!this._alive(tk)) return false;
+        await this.wait(72); if (!this._alive(tk)) return false;
       }
       this.yaw = yaw; return true;
     }
@@ -110,81 +135,109 @@
     async walkTo(tx) {
       const tk = this._begin(); this.sleeping = false;
       const dir = Math.sign(tx - this.x); if (!dir) { this.rig(); return true; }
-      this.mode = 'walking';
-      this.bounce(0.8); await this.wait(150); if (!this._alive(tk)) return false;          // anticipation
-      // turn using a pose from the same sheet as the walk (turn_left_3q faces left; mirrored it faces right)
-      this.pose('turn_left_3q', 140, dir > 0); this.yaw = dir > 0 ? 45 : -45; await this.wait(200); if (!this._alive(tk)) return false;
-      this.pose('walk_a', 120, dir < 0); this.yaw = dir > 0 ? 85 : -90; this.leanTarget = dir * 0.03;
-      const arrived = await new Promise(done => { this.walk = { tx, dir, v: 0, dist: 0, frame: 0, done }; });
+      this.mode = 'walking'; const W = this.c.walk, left = dir < 0;
+      if (!await this.turnTo(dir * 90, tk)) return false;                                   // turn to the side first
+      for (const n of W.start || []) { this.pose(n, 80, left, true); await this.wait(110); if (!this._alive(tk)) return false; }
+      this.yaw = dir * 90; this.leanTarget = dir * 0.02;
+      const arrived = await new Promise(done => { this.walk = { tx, dir, v: 0, dist: 0, frame: -1, done }; });
       if (!arrived || !this._alive(tk)) return false;
-      this.pose('turn_left_3q', 140, dir > 0); this.yaw = 0;                                  // settle, turning back toward the user
-      this.leanTarget = 0; this.bounce(1.0); await this.wait(260); if (!this._alive(tk)) return false;
-      this.rig(150); this.mode = 'idle'; return true;
+      this.leanTarget = 0;
+      for (const n of W.stop || []) { this.pose(n, 80, left, true); await this.wait(130); if (!this._alive(tk)) return false; }
+      this.setVisual({ type: 'ring', idx: this.ringIdx(dir * 90) }, 100);
+      if (!await this.turnTo(0, tk)) return false;                                          // turn back to the user
+      this.rig(150); this.bounce(0.6); this.mode = 'idle'; return true;
     }
 
-    async attention() {
-      const tk = this._begin(); this.sleeping = false; this.mode = 'attention';
-      if (this.visual.type !== 'rig') { this.rig(150); await this.wait(220); if (!this._alive(tk)) return false; }
-      this.setMood('happy'); this.twitchEar('l'); this.twitchEar('r');
-      this.hop(16, 320); await this.wait(420); if (!this._alive(tk)) return false;
-      return true;
+    async attention() {   // notice, lean in, wave, then hold a paw up while the bubble with buttons is open
+      const tk = this._begin(); this.sleeping = false; this.mode = 'attention'; this.leanTarget = 0;
+      if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
+      this.setMood('happy');
+      return this._run('attention', tk);
+    }
+    async pointAtTask() {   // holds until the next action
+      const tk = this._begin(); this.sleeping = false; this.mode = 'pointing';
+      return this._run('point_at_task', tk);
     }
     async celebrate() {
-      const tk = this._begin(); this.sleeping = false; this.mode = 'celebrating';
-      this.pose('celebrate', 150); this.bounce(1); await this.wait(650); if (!this._alive(tk)) return false;
-      this.pose('jump_happy', 120); this.hop(30, 420); await this.wait(520); if (!this._alive(tk)) return false;
-      this.pose('celebrate', 120); this.bounce(0.8); await this.wait(500); if (!this._alive(tk)) return false;
-      this.rig(150); this.setMood('happy'); await this.wait(1800); if (!this._alive(tk)) return false;
+      const tk = this._begin(); this.sleeping = false; this.mode = 'celebrating'; this.setMood('celebrate');
+      if (!await this._run('celebrate', tk)) return false;
+      this.setMood('happy'); await this.wait(800); if (!this._alive(tk)) return false;
       this.setMood('calm'); this.mode = 'idle'; return true;
     }
-    async annoyed(hold = 1600, after = 2500) {
-      const tk = this._begin(); this.mode = 'annoyed';
-      this.pose('annoyed_sit', 150); this.bounce(0.6); await this.wait(hold); if (!this._alive(tk)) return false;
-      this.rig(150); this.setMood('annoyed'); await this.wait(after); if (!this._alive(tk)) return false;
+    async annoyed(level = 1, after = 1500) {   // level 1 mild, 2 questioning, 3 angry (never shouting)
+      const tk = this._begin(); this.mode = 'annoyed'; this.sleeping = false;
+      level = clamp(Math.round(level) || 1, 1, 3);
+      if (!await this._run('annoyed_' + level, tk)) return false;
+      this.setMood('annoyed'); await this.wait(after); if (!this._alive(tk)) return false;
       this.setMood('calm'); this.mode = 'idle'; return true;
     }
-    async plead(hold = 1400) {
-      const tk = this._begin();
-      this.pose('pleading', 150); await this.wait(hold); if (!this._alive(tk)) return false;
-      this.rig(150); return true;
+    async plead() {   // when a reminder is ignored
+      const tk = this._begin(); this.mode = 'pleading'; this.sleeping = false;
+      if (!await this._run('plead', tk)) return false;
+      this.rig(150); this.mode = 'idle'; return true;
     }
-    async curious(hold = 1200) {
-      const tk = this._begin(); this.setMood('curious');
-      this.pose('look_tilt', 150); await this.wait(hold); if (!this._alive(tk)) return false;
-      this.rig(150); this.setMood('calm'); return true;
+    async accept() { const ok = await this.play('accept'); if (ok) this.setMood('calm'); return ok; }        // "Five more minutes"
+    async sulk() { const ok = await this.play('sulk'); if (ok) this.setMood('calm'); return ok; }            // "Back to work" after a scolding
+    async surprise() { this.twitchEar('l'); this.twitchEar('r'); return this.play('surprise'); }             // a task due today appears
+    async welcomeBack() { const ok = await this.play('welcome_back'); if (ok) this.setMood('happy'); return ok; }
+    async rest() {   // short Pomodoro break: stretch, yawn, sit relaxed, lie down after a minute
+      const tk = this._begin(); this.mode = 'break'; this.sleeping = false; this.setMood('calm');
+      this.breathAmp = 0.008; this.breathHz = 0.28;
+      return this._run('rest', tk);
     }
-    async rest() {   // short Pomodoro break: relaxed stance, curled tail
-      const tk = this._begin(); this.mode = 'break'; this.setMood('calm');
-      this.pose('calm_curled_tail', 150); this.breathAmp = 0.008; this.breathHz = 0.28; return this._alive(tk);
-    }
-    async sleep() {
+    async sleep() {   // meal break
       const tk = this._begin(); this.mode = 'sleeping'; this.setMood('sleepy');
       if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
-      this.pose('yawn', 150); this.bounce(0.5); await this.wait(1400); if (!this._alive(tk)) return false;
-      this.pose('sit_drowsy', 150); await this.wait(1500); if (!this._alive(tk)) return false;
-      this.pose('sleep_curl', 150); this.sleeping = true; this.breathAmp = 0.018; this.breathHz = 0.22;
+      if (!await this._run('sleep_in', tk)) return false;
+      this.pose('sleep_curl', 150); this.sleeping = true; this.breathAmp = 0.008; this.breathHz = 0.22;
+      this._sleepLoop(tk);
       return true;
+    }
+    async _sleepLoop(tk) {   // breathe in, breathe out, now and then an ear twitch or a tail curl
+      const q = this.c.sequences.sleep_loop;
+      await this.wait(800);
+      while (this._alive(tk)) {
+        for (const f of q.frames) { this.pose(f.pose, 500); await this.wait(f.ms); if (!this._alive(tk)) return; }
+        for (const e of q.extras || []) if (Math.random() < e.chance) { this.pose(e.pose, 200); await this.wait(e.ms); if (!this._alive(tk)) return; }
+      }
     }
     async wake() {
       const tk = this._begin(); this.mode = 'waking'; this.sleeping = false;
       this.breathAmp = 0.006; this.breathHz = 0.35;
-      this.pose('lying_wake', 150); await this.wait(1300); if (!this._alive(tk)) return false;
-      this.pose('stretch', 150); this.bounce(-0.6); await this.wait(1300); if (!this._alive(tk)) return false;
-      this.rig(150); this.setMood('calm'); this.bounce(0.6); this.mode = 'idle'; return true;
+      if (!await this._run('wake', tk)) return false;
+      this.setMood('calm'); this.bounce(0.6); this.mode = 'idle'; return true;
     }
     async stretchUp() {   // end of a break: stretch, then back to the idle rig, a little happy
       const tk = this._begin(); this.mode = 'waking'; this.sleeping = false; this.breathAmp = 0.006; this.breathHz = 0.35;
-      this.pose('stretch', 150); this.bounce(-0.6); await this.wait(1100); if (!this._alive(tk)) return false;
-      this.rig(150); this.setMood('happy'); this.bounce(0.6); await this.wait(1200); if (!this._alive(tk)) return false;
+      if (!await this._run('stretch_up', tk)) return false;
+      this.setMood('happy'); this.bounce(0.6); await this.wait(1200); if (!this._alive(tk)) return false;
       this.setMood('calm'); this.mode = 'idle'; return true;
     }
-    async faceAway() {   // Quiet mode look: back to the user, dimmed
-      const tk = this._begin(); this.mode = 'quiet'; this.sleeping = false; this.talk(false);
-      this.setQuietLook(true); await this.turnTo(180, tk); return this._alive(tk);
+    // Dragging: the host calls dragStart on mouse down, dragMove(vx) while moving, dragEnd on release.
+    async dragStart() {
+      const tk = this._begin(); this.mode = 'dragged'; this.sleeping = false; this.talk(false);
+      return this._run('drag_start', tk);
+    }
+    dragMove(vx) { if (this.mode === 'dragged') this.leanTarget = clamp(-vx * 0.0005, -0.16, 0.16); }   // sways a few degrees with mouse speed
+    async dragEnd() {
+      const tk = this._begin(); this.mode = 'landing'; this.leanTarget = 0;
+      if (!await this._run('drag_end', tk)) return false;
+      this.rig(150); this.mode = 'idle'; return true;
+    }
+    async faceAway() {   // Quiet mode look: turns his back, sits, dimmed
+      const tk = this._begin(); this.mode = 'quiet'; this.sleeping = false; this.talk(false); this.leanTarget = 0;
+      this.setQuietLook(true);
+      if (!await this.turnTo(180, tk)) return false;
+      this.pose('quiet_back_sit', 150, false, true); this.yaw = 180; return true;
     }
     async faceBack() {
       const tk = this._begin(); this.setQuietLook(false);
       if (!await this.turnTo(0, tk)) return false; this.rig(150); this.mode = 'idle'; return true;
+    }
+    async _variety() {   // idle only: a thought, a look at the ground, or a glance to the side
+      const names = ['idle_think', 'idle_inspect', 'idle_glance'];
+      const tk = this._begin(); this.mode = 'variety';
+      if (await this._run(names[Math.floor(Math.random() * names.length)], tk)) this.mode = 'idle';
     }
 
     // ---------- per-frame update ----------
@@ -227,6 +280,11 @@
         this.mouthClock -= dt;
         if (this.mouthClock <= 0) { this.mouth = this.mouth ? 0 : 1; this.mouthClock = this.mouth ? 0.09 + Math.random() * 0.08 : 0.07 + Math.random() * 0.1; if (this.mouth) this.squashV += 1.2; }
       }
+      // idle variety: never during focus, Quiet mode, talking or any action
+      if (this.mode === 'idle' && this.visual.type === 'rig' && !this.minimalMotion && this.alphaTarget === 1 && !this.talking) {
+        this.varietyClock -= dt;
+        if (this.varietyClock <= 0) { this.varietyClock = 40 + Math.random() * 50; this._variety(); }
+      }
       // sleeping z's
       if (this.sleeping) { this.zClock -= dt; if (this.zClock <= 0) { this.zClock = 1.4; this.zs.push({ t: 0, x0: Math.random() * 6 }); } }
       this.zs.forEach(z => z.t += dt); this.zs = this.zs.filter(z => z.t < 2.6);
@@ -234,16 +292,15 @@
     }
 
     _walkStep(dt) {
-      const w = this.walk, vmax = 150, acc = 420, dec = 380, stride = this.c.walk.strideDisplayPx || 34;
+      const w = this.walk, vmax = 150, acc = 420, dec = 380, W = this.c.walk, frames = W.right, per = W.framePx || 9;
       const rem = Math.abs(w.tx - this.x);
       const vStop = Math.sqrt(2 * dec * rem);
       w.v = Math.min(w.v + acc * dt, vmax, Math.max(24, vStop));
       const step = Math.min(rem, w.v * dt);
       this.x += w.dir * step; w.dist += step;
-      const f = Math.floor(w.dist / stride) % 2;
-      if (f !== w.frame) { w.frame = f; this.pose(f ? 'walk_b' : 'walk_a', 0, w.dir < 0); }
-      this.yOff = Math.abs(Math.sin(Math.PI * w.dist / stride)) * 3;
-      this.leanTarget = w.dir * 0.03 * (w.v / vmax);
+      const f = Math.floor(w.dist / per) % frames.length;     // the frame follows distance, so the feet do not slide
+      if (f !== w.frame) { w.frame = f; this.pose(frames[f], 60, w.dir < 0, true); }
+      this.leanTarget = w.dir * 0.02 * (w.v / vmax);
       if (rem - step < 0.5) { this.x = w.tx; const d = w.done; this.walk = null; d(true); }
     }
 
@@ -274,8 +331,8 @@
     _drawVisual(ctx, v, alpha, sx, sy) {
       if (alpha <= 0.003) return;
       let im, ax, fy, flip = false, w, h;
-      if (v.type === 'rig') { im = this._renderRig(); if (!im) return; ax = this.c.rig.anchorX + this.M; fy = this.c.rig.feetY + this.M; w = im.width; h = im.height; }
       let k = 1;
+      if (v.type === 'rig') { im = this._renderRig(); if (!im) return; ax = this.c.rig.anchorX + this.M; fy = this.c.rig.feetY + this.M; w = im.width; h = im.height; k = this.c.rig.scale || 1; }
       if (v.type === 'ring') { const r = this.ring[v.idx]; im = this.img[r.file]; ax = r.anchorX ?? this.c.ring.anchorX; fy = r.feetY ?? this.c.ring.feetY; flip = !!r.flip; k = r.scale ?? this.c.ring.scale ?? 1; }   // art v3: each view has its own anchor and scale
       else if (v.type === 'pose') { const p = this.c.poses[v.name]; im = this.img[p.file]; ax = p.anchorX; fy = p.feetY; flip = !!v.flip; k = p.scale || 1; }
       if (!im) return; w = w || im.width; h = h || im.height;
@@ -294,7 +351,7 @@
       // tail
       const tp = this.tailP; const lim = R.tailRotationLimits || [-2, 24];
       let ang = tp.base + Math.sin(this.tailPhase) * tp.amp + (tp.jit ? (Math.sin(this.time * 113) * 0.5 + Math.sin(this.time * 71)) * tp.jit : 0);
-      ang = clamp(ang, lim[0], lim[1]);
+      ang = clamp(ang, lim[0], lim[1]) * (R.tailSign || 1);    // tailSign -1: the tail is on the left of the body
       drawRot(g, I[R.layers.tail], P.tail, ang, tp.scale);
       drawRot(g, I[R.layers.ear_l], P.earL, this.ear.l, 1);
       drawRot(g, I[R.layers.ear_r], P.earR, this.ear.r, 1);

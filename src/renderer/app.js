@@ -1,4 +1,4 @@
-/* Phase 0 host page: loads character.json and its images, then shows the idle rig. */
+/* Host page: loads character.json and its images, then shows the idle rig. */
 (async function () {
   const BASE = 'character/assets/';
   const status = document.getElementById('status');
@@ -15,13 +15,12 @@
   try {
     const char = await (await fetch(BASE + 'character.json')).json();
     const files = new Set([...Object.values(char.rig.layers), ...Object.values(char.rig.overlays)]);
-    char.ring.ring.forEach(r => files.add(r.file));
-    Object.values(char.poses).forEach(p => files.add(p.file));
+    Object.values(char.poses).forEach(p => { if (!p.legacy) files.add(p.file); });   // the turn ring uses the same files
     const images = Object.fromEntries(await Promise.all([...files].map(loadImage)));
 
     const tokku = new TokkuCharacter(char, images);
     tokku.x = canvas.width / 2; tokku.groundY = canvas.height - 40;
-    status.textContent = 'Phase 0: Tokku is running (' + files.size + ' images loaded).';
+    status.textContent = 'Tokku is running (' + files.size + ' images loaded).';
 
     let last = performance.now();
     const frame = (now) => {

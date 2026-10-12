@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Tokku review: sequences</title>
+  <style>
+    html, body { margin: 0; background: #23262e; color: #dfe3ee; font: 14px system-ui, sans-serif; }
+    main { max-width: 1000px; margin: 0 auto; padding: 14px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    h2 { font-size: 13px; margin: 14px 0 6px; color: #9aa3b8; text-transform: uppercase; letter-spacing: .06em; }
+    p.hint { margin: 0 0 10px; color: #9aa3b8; }
+    #stage-wrap { position: relative; background: #3a3f4c; border-radius: 10px; overflow: hidden; }
+    #stage { display: block; width: 100%; }
+    #bubble { position: absolute; max-width: 300px; background: #fff; color: #1d2030; border-radius: 12px; padding: 10px 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35); transform: translate(-50%, -100%); display: none; }
+    #bubble .acts { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+    #status { margin: 8px 0 0; color: #9aa3b8; font-family: ui-monospace, Consolas, monospace; font-size: 12px; min-height: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; }
+    button { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid #555d70; background: #2f3441; color: #eef1f8; cursor: pointer; }
+    button:hover { background: #3b4254; }
+    button.primary { background: #e08a2e; border-color: #e08a2e; color: #1d1405; font-weight: 600; }
+    #bubble button { background: #f1f2f6; color: #1d2030; border-color: #c9cddb; padding: 4px 8px; }
+    label { margin-right: 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Tokku review page</h1>
+  <p class="hint">Every button plays one thing. "Play full story" runs them in a realistic order (about one minute at 1x).</p>
+  <div id="stage-wrap">
+    <canvas id="stage" width="1000" height="430"></canvas>
+    <div id="bubble"><div id="bubble-text"></div><div class="acts" id="bubble-acts"></div></div>
+  </div>
+  <p id="status">Loading...</p>
+
+  <div class="row">
+    <button class="primary" id="story">Play full story</button>
+    <button id="stop">Back to idle</button>
+    <span style="align-self:center;margin-left:10px">Speed:
+      <label><input type="radio" name="speed" value="0.5"> 0.5x</label>
+      <label><input type="radio" name="speed" value="1" checked> 1x</label>
+    </span>
+  </div>
+
+  <h2>What happens in the app (through the brain)</h2>
+  <div class="row" id="brain-buttons"></div>
+  <h2>Character actions</h2>
+  <div class="row" id="action-buttons"></div>
+  <h2>Single sequences</h2>
+  <div class="row" id="sequence-buttons"></div>
+</main>
+<script src="../../src/renderer/character/assets/character.data.js"></script>
+<script src="../../src/renderer/character/tokku-character.js"></script>
+<script src="../../src/renderer/character/tokku-brain.js"></script>
+<script src="sequences.js"></script>
+</body>
+</html>

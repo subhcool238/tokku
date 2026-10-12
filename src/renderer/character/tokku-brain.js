@@ -97,7 +97,7 @@
       this._ev('choose:' + action); this._hideBubble();
       if (action === 'extend' && this.state === 'attention' && this.extensions < this.o.maxExtensions) {
         this.extensions++; this.state = 'focusing'; this._setTimer('extend', this.o.extendMin);
-        if (!this.quiet) { this.ch.plead(1000).then(ok => ok && this.ch.setMood('focused')); } this.say('extend_ok'); return true;
+        if (!this.quiet) { this.ch.accept().then(ok => ok && this.ch.setMood('focused')); } this.say('extend_ok'); return true;
       }
       if (action === 'break' && this.state === 'attention') {
         this.state = 'break'; this._setTimer('break', this.o.breakMin); this.ch.minimalMotion = false;
@@ -158,7 +158,7 @@
       this.drags++; const back = this.state; this.state = 'walking'; this._hideBubble();
       this.ch.x = toX;                               // the user dropped him here
       if (this.quiet) { this.ch.x = this.o.homeX; this.state = back; return true; }
-      if (this.drags >= 2) { await this.ch.annoyed(1300, 700); this.say('dragged_again'); } else this.say('dragged');
+      if (this.drags >= 2) { await this.ch.annoyed(Math.min(3, this.drags), 700); this.say('dragged_again'); } else this.say('dragged');
       const ok = await this.ch.walkTo(this.o.homeX);
       if (ok) { this.state = back === 'walking' ? 'idle' : back; if (this.state === 'focusing') this.ch.setMood('focused'); }
       return ok;
