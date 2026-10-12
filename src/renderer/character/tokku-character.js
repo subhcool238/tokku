@@ -159,6 +159,11 @@
       this.setMood('happy');
       return this._run('attention', tk);
     }
+    async show(name) {      // one picture, held until the next action (watch check, looking away, angry...)
+      const tk = this._begin(); this.sleeping = false; this.mode = 'showing'; this.leanTarget = 0;
+      if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
+      this.pose(name, 150); return true;
+    }
     async pointAtTask() {   // holds until the next action
       const tk = this._begin(); this.sleeping = false; this.mode = 'pointing';
       return this._run('point_at_task', tk);

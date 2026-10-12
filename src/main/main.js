@@ -14,7 +14,14 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 const WIN = { width: 340, height: 452, margin: 14 };
 
 let win = null, tray = null;
-const state = { interview: false, dnd: false, pausedUntil: 0, pausesThisHour: [] };
+const sense = require('./guard-sense');
+const state = { interview: false, dnd: false, pausedUntil: 0, pausesThisHour: [], micCamera: true, debug: false, sensed: [], quiet: false };
+
+// Quiet mode is on when any reason holds: Interview mode, Do not disturb, a meeting window, mic or camera in use, a full screen work app
+function updateQuiet() {
+  const on = state.interview || state.dnd || state.sensed.length > 0;
+  if (on !== state.quiet) { state.quiet = on; send({ type: 'quiet', on }); }
+}
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } },
@@ -75,10 +82,10 @@ function createWindow() {
         const r = await win.webContents.executeJavaScript(
           "({ status: window.__tokkuStatus ? window.__tokkuStatus() : 'no status', png: document.getElementById('stage').toDataURL('image/png') })");
         fs.writeFileSync(shot, Buffer.from(r.png.split(',')[1], 'base64'));
-        fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + win.isAlwaysOnTop() + ' | focusable ' + win.isFocusable());
+        fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + win.isAlwaysOnTop() + ' | focusable ' + win.isFocusable() + ' | sensed ' + JSON.stringify(state.lastReport || null));
       } catch (err) { fs.writeFileSync(shot + '.txt', 'SELF-TEST ERROR: ' + err.message); }
       app.quit();
-    }, 3000));
+    }, 8000));
   }
 }
 
@@ -92,7 +99,7 @@ ipcMain.on('tokku:front', (e, on) => {
 
 // ---------- tray ----------
 function mealNow() { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; }
-function setInterview(on) { state.interview = on; send({ type: 'quiet', on: state.interview || state.dnd, reason: 'interview' }); buildTray(); }
+function setInterview(on) { state.interview = on; updateQuiet(); buildTray(); }
 function buildTray() {
   const now = Date.now();
   state.pausesThisHour = state.pausesThisHour.filter(t => now - t < 3600000);
@@ -102,7 +109,8 @@ function buildTray() {
       enabled: !paused && state.pausesThisHour.length < 2,
       click: () => { state.pausedUntil = Date.now() + 15 * 60000; state.pausesThisHour.push(Date.now()); send({ type: 'pause', minutes: 15 }); buildTray(); } },
     { label: 'Interview mode (Ctrl+Alt+Q)', type: 'checkbox', checked: state.interview, click: (i) => setInterview(i.checked) },
-    { label: 'Do not disturb', type: 'checkbox', checked: state.dnd, click: (i) => { state.dnd = i.checked; send({ type: 'quiet', on: state.interview || state.dnd, reason: 'dnd' }); } },
+    { label: 'Do not disturb', type: 'checkbox', checked: state.dnd, click: (i) => { state.dnd = i.checked; updateQuiet(); } },
+    { label: 'Quiet when mic or camera is in use', type: 'checkbox', checked: state.micCamera, click: (i) => { state.micCamera = i.checked; } },
     { type: 'separator' },
     { label: 'Breakfast', click: () => send({ type: 'meal', meal: 'breakfast' }) },
     { label: 'Lunch', click: () => send({ type: 'meal', meal: 'lunch' }) },
@@ -110,6 +118,7 @@ function buildTray() {
     { type: 'separator' },
     { label: 'Start with Windows', type: 'checkbox', enabled: app.isPackaged, checked: app.isPackaged && app.getLoginItemSettings().openAtLogin,
       click: (i) => app.setLoginItemSettings({ openAtLogin: i.checked }) },
+    { label: 'Show what Tokku senses (debug line)', type: 'checkbox', checked: state.debug, click: (i) => { state.debug = i.checked; send({ type: 'debug', on: state.debug }); } },
     { label: 'Settings (coming in a later phase)', enabled: false },
     { label: 'What Tokku saw today (coming in a later phase)', enabled: false },
     { type: 'separator' },
@@ -133,6 +142,12 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.whenReady().then(() => {
     serveRenderer(); lockDownSession(); createWindow();
+    sense.start((r) => {
+      state.lastReport = r;
+      state.sensed = r.reasons; updateQuiet();
+      send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons });
+      if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes });
+    }, { micCamera: () => state.micCamera });
     if (!process.env.TOKKU_SHOT) {
       createTray();
       globalShortcut.register('Control+Alt+Q', () => setInterview(!state.interview));

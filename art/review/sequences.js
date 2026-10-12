@@ -57,7 +57,10 @@
     await brain.dragged(dropX);
   }
 
+  let watching = null;                                             // review only: pretend a video is in front
   const brainActions = {
+    'YouTube opens (nudge after 3 s here)': () => { brain.o.nudgeAfterSec = 3; brain.o.bargainMin = 0.1; brain.o.backGraceSec = 4; watching = 'YouTube'; },
+    'YouTube closed': () => { watching = null; },
     'Focus (start 25 min)': () => brain.startFocus(),
     'Attention (focus time is up)': () => { if (brain.state !== 'focusing') brain.startFocus(); timerDue(); },
     'Five more minutes': () => brain.choose('extend'),
@@ -103,9 +106,12 @@
   async function story() {
     const me = ++storyRun, alive = () => me === storyRun;
     const step = async (fn, ms) => { if (!alive()) return; fn(); await pause(ms); };
-    brain.setQuiet(false); ui.hide(); ch.x = HOME_X; await ch.idle(); brain.state = 'idle'; brain.drags = 0; brain.extensions = 0;
+    watching = null; brain.nudges = []; brain.setQuiet(false); ui.hide(); ch.x = HOME_X; await ch.idle(); brain.state = 'idle'; brain.drags = 0; brain.extensions = 0;
     await step(() => {}, 1500);
     await step(() => brain.startFocus(), 3500);                                   // focus starts
+    await step(() => brainActions['YouTube opens (nudge after 3 s here)'](), 7000); // YouTube in front: he points at the task
+    await step(() => brain.choose('bargain'), 9500);                              // "5 more minutes": open palm, looks away, then checks his watch
+    await step(() => { watching = null; }, 4000);                                 // YouTube closed: thumbs up
     await step(() => timerDue(), 5000);                                           // 25 minutes later: he waves hi
     await step(() => brain.choose('extend'), 3500);                               // "Five more minutes": thumbs up
     await step(() => timerDue(), 5000);                                           // extra time over: attention again
@@ -123,7 +129,7 @@
     return alive();
   }
   $('story').onclick = story;
-  $('stop').onclick = () => { storyRun++; brain.setQuiet(false); ui.hide(); brain._clearTimer(); brain.state = 'idle'; ch.minimalMotion = false; ch.setMood('calm'); ch.idle(); };
+  $('stop').onclick = () => { storyRun++; watching = null; brain.setQuiet(false); ui.hide(); brain._clearTimer(); brain.state = 'idle'; ch.minimalMotion = false; ch.setMood('calm'); ch.idle(); };
   document.querySelectorAll('input[name=speed]').forEach(r => r.onchange = () => { if (r.checked) speed = Number(r.value); });
 
   // ---- drawing loop
@@ -136,6 +142,7 @@
   }
   function frame(dt) {
     ch.update(dt * speed); brain.tick(dt * 1000 * speed);
+    brain.activity(watching ? 'video' : 'work', watching, dt * speed);
     drawFloor(); ch.draw(ctx);
     const k = canvas.clientWidth / canvas.width || 1;
     const b = $('bubble'); b.style.left = (ch.x * k) + 'px'; b.style.top = ((GROUND_Y - 250) * k) + 'px';

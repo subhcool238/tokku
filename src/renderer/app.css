@@ -39,6 +39,9 @@ button.primary { background: linear-gradient(180deg, rgba(255, 180, 78, .97), rg
 /* hover buttons: appear under his feet only while the mouse is on him */
 #hover-bar { position: absolute; left: 0; right: 0; top: 408px; display: flex; gap: 7px; justify-content: center; animation: rise .18s ease-out; }
 
+#debug { position: absolute; left: 6px; right: 6px; top: 436px; font: 10.5px ui-monospace, Consolas, monospace; color: #fff; text-align: center;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000; white-space: nowrap; overflow: hidden; }
+
 @keyframes pop { from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.94); } to { opacity: 1; transform: translateX(-50%); } }
 @keyframes rise { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #bubble, #hover-bar { animation: none; } button { transition: none; } }

@@ -82,5 +82,32 @@ const states = b => b.log.map(e => e.ev);
     check('9f break over does nothing when not on a break', b.breakOver() === false);
     b.startMeal('lunch'); check('9g no break during a meal', b.startBreak() === false && b.state === 'meal');
   }
+  // 10. distraction: video in front
+  { const { ch, b, said, run } = make();
+    const watch = async (sec, app = 'YouTube') => { for (let i = 0; i < sec; i++) { b.activity('video', app, 1); await run(1 / 60, 60); } };   // 1 s of sim time per step
+    b.startFocus(); await run(0.3);
+    await watch(40); check('10a no nudge before 45 s', !b.nudging && !b.log.some(e => e.ev.startsWith('nudge')));
+    await watch(6); check('10b nudge after 45 s: points, names the app, two buttons', b.nudging && ch.visual.name === 'found_point' && said.at(-1).actions.join() === 'bargain,backtowork', said.at(-1).text);
+    b.choose('bargain'); await run(0.5); check('10c five more minutes: open palm', ch.visual.name === 'paw_stop' && b.bargaining);
+    await run(2); check('10d then he looks away', ch.visual.name === 'away_look_away');
+    await watch(200); check('10e no nudge during the five minutes', !b.nudging);
+    await watch(110); check('10f time is up: checks his watch, only Back to work', b.nudging && ch.visual.name === 'away_check_time' && said.at(-1).actions.join() === 'backtowork', said.at(-1).text);
+    b.choose('backtowork'); await run(0.5); check('10g back to work: thumbs up', ch.visual.name === 'accept_thumbs' && !b.nudging);
+    await watch(50); check('10h a minute of grace to really leave', !b.nudging);
+    await watch(60); check('10i third nudge in 30 min: angry pose, firm line', b.nudging && ch.visual.name === 'annoyed_angry', said.at(-1).text);
+    const n = said.length; b.activity('work', null, 3); await run(0.5);
+    check('10j video closed: bubble gone, thumbs up, kind line', !b.nudging && said.length === n + 1 && ch.visual.name === 'accept_thumbs', said.at(-1).text);
+    await run(3); check('10k back on the idle rig, still focusing', ch.visual.type === 'rig' && b.state === 'focusing');
+  }
+  { const { b, said, run } = make();
+    const watch = async (sec) => { for (let i = 0; i < sec; i++) { b.activity('video', 'Netflix', 1); await run(1 / 60, 60); } };
+    b.startFocus(); b.startMeal('dinner'); const n = said.length; await watch(120);
+    check('10l no nudge during a meal', !b.nudging && said.length === n);
+  }
+  { const { b, said, run } = make();
+    const watch = async (sec) => { for (let i = 0; i < sec; i++) { b.activity('game', 'Steam', 1); await run(1 / 60, 60); } };
+    b.startFocus(); b.setQuiet(true); const n = said.length; await watch(120);
+    check('10m no nudge in Quiet mode', !b.nudging && said.length === n);
+  }
   console.log(results.join('\n')); console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 })();

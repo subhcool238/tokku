@@ -17,6 +17,13 @@
     extend_ok: ["Okay. Five more minutes.", "Deal. Five more, then a break."],
     extend_end: ["Five minutes are up. Break time.", "That was the extra five. Break now."],
     break_start: ["Enjoy your break. Stretch and drink some water.", "Break time. Look away from the screen."],
+    nudge_gentle: ["{app}? Really? {task} is still waiting.", "Last time 'one episode' turned into three. I was there.", "I'll just sit here until {task} is done. No pressure."],
+    bargain_granted: ["Fine. Five minutes. I'm counting.", "Five minutes, then we're back. Deal?"],
+    bargain_over: ["Time's up. {task}, please.", "I kept my promise. Your turn.", "Five minutes are over. Please turn {app} off."],
+    nudge_firm: ["You are wasting your time on {app} again. Please turn it off.", "Third time. Even my tail is annoyed now.", "{app} will still be here tomorrow. {task} will not wait."],
+    late_night: ["{app} at {time}? Tomorrow-you will not be happy.", "Sleep or work. There's no third option."],
+    back_to_work: ["Good choice. Let's go.", "That's the spirit. Back to it."],
+    welcome_back: ["Welcome back. Let's pick up where we left off.", "There you are. {task} missed you."],
     break_over: ["Break's over. Fresh start.", "Back at it. You've got this."],
     break_end: ["Break's over. Back to '{task}'?", "Ready? '{task}' is waiting."],
     meal_start: ["Enjoy your {meal}. See you in an hour.", "Go eat. I'll nap till you're back."],
@@ -34,13 +41,15 @@
       this.ch = character; this.ui = ui;
       this.o = Object.assign({ focusMin: 25, breakMin: 5, extendMin: 5, mealMin: 60, maxExtensions: 1, remindMin: 2,
         lines: DEFAULT_LINES, topTask: () => 'Finish DJX concept PDF', nextTask: () => 'Record demo video',
-        homeX: 1100 }, opts);
+        homeX: 1100, nudgeAfterSec: 45, bargainMin: 5, backGraceSec: 60, now: () => new Date() }, opts);
       this.t = 0;                 // sim ms
       this.state = 'idle'; this.quiet = false; this.timer = null; this.pending = [];
       this.extensions = 0; this.meal = null; this.drags = 0; this.lastLine = {};
       this.voiceOn = false; this.voiceName = null;
       this.log = [];              // [{t, ev, state}] for tests and the privacy panel
       this.bubble = null;         // {id, actionable}
+      this.dist = { app: null, sec: 0, nudged: false, graceUntil: 0 };   // current video or game in front
+      this.nudges = []; this.nudging = false; this.bargaining = false;    // nudge times (last 30 min), open nudge, granted bargain
     }
 
     // ---------- time ----------
@@ -57,7 +66,10 @@
     // ---------- dialogue ----------
     line(key, vars = {}) {
       const arr = this.o.lines[key] || [key]; const s = pick(arr, this.lastLine[key]); this.lastLine[key] = s;
-      return s.replace('{task}', this.o.topTask()).replace('{next}', this.o.nextTask()).replace('{meal}', this.meal || 'meal').replace('{minutes}', vars.minutes || '');
+      const time = this.o.now().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const out = s.replaceAll('{task}', this.o.topTask()).replaceAll('{next}', this.o.nextTask()).replaceAll('{meal}', this.meal || 'meal')
+        .replaceAll('{minutes}', vars.minutes || '').replaceAll('{app}', this.dist.app || 'that').replaceAll('{time}', time);
+      return out[0].toUpperCase() + out.slice(1);
     }
     say(key, actions = null, vars) {
       const text = this.line(key, vars);
@@ -71,7 +83,43 @@
       return id;
     }
     _hideBubble() { if (this.bubble) { this.ui.hide(this.bubble.id); this.bubble = null; } this.ch.talk(false); }
-    _actionTimeout(key) { this._ev('timeout:' + key); this.bubble = null; this.ch.talk(false); if (this.state === 'attention') this._setTimer('remind', this.o.remindMin); }
+    _actionTimeout(key) {
+      this._ev('timeout:' + key); this.bubble = null; this.ch.talk(false);
+      if (this.nudging) {          // no answer to a nudge: he sighs and asks again in two minutes
+        this.nudging = false; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.remindMin * MIN;
+        if (!this.quiet) this.ch.play('sigh'); return;
+      }
+      if (this.state === 'attention') this._setTimer('remind', this.o.remindMin);
+    }
+
+    // ---------- distraction: a video or game is in front (Guard reports only a category and an app label) ----------
+    activity(category, app, dtSec) {
+      const d = this.dist, bad = category === 'video' || category === 'game';
+      if (!bad) { if (d.app) this._distractionEnded(); return; }
+      if (this.state === 'meal' || this.state === 'waking') return;             // watching something while eating is fine
+      if (d.app !== app) { d.app = app; d.sec = 0; d.nudged = false; }
+      d.sec += dtSec;
+      if (this.quiet || this.nudging || d.nudged || this.t < d.graceUntil || d.sec < this.o.nudgeAfterSec) return;
+      this._nudge();
+    }
+    _nudge() {
+      const d = this.dist; d.nudged = true; this.nudging = true;
+      this.nudges = this.nudges.filter(t => this.t - t < 30 * MIN); this.nudges.push(this.t);
+      const n = this.nudges.length, back = { id: 'backtowork', label: 'Back to work' };
+      const now = this.o.now(), mins = now.getHours() * 60 + now.getMinutes(), late = mins >= 23 * 60 + 30 || mins < 5 * 60;
+      this._ev('nudge:' + n); this.ch.minimalMotion = false;
+      if (n >= 3) { this.bargaining = false; this.ch.show('annoyed_angry'); this.say('nudge_firm', [back]); }                      // third time in 30 min
+      else if (this.bargaining) { this.bargaining = false; this.ch.show('away_check_time'); this.say('bargain_over', [back]); }    // the five minutes are over
+      else { this.ch.pointAtTask(); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }, back]); }
+    }
+    _distractionEnded() {          // the video or game is no longer in front
+      const d = this.dist, was = this.nudging || this.bargaining;
+      d.app = null; d.sec = 0; d.nudged = false; this.nudging = false; this.bargaining = false;
+      if (!was) return;
+      this._ev('distraction:ended'); this._hideBubble();
+      if (this.quiet) return;
+      this.say('back_to_work'); this.ch.play('thanks').then(ok => ok && this.state === 'focusing' && this.ch.setMood('focused'));
+    }
 
     // ---------- voice (optional, local Windows voices only, off by default) ----------
     setVoice(on) { this.voiceOn = !!on; if (!on) this._stopSpeech(); this._ev('voice:' + (on ? 'on' : 'off')); }
@@ -96,6 +144,16 @@
     }
     choose(action) {
       this._ev('choose:' + action); this._hideBubble();
+      if (action === 'bargain' && this.nudging) {                     // "5 more minutes" of the video: open palm, then he looks away
+        this.nudging = false; this.bargaining = true; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.bargainMin * MIN;
+        if (!this.quiet) this.ch.accept().then(ok => ok && this.bargaining && this.ch.show('away_look_away'));
+        this.say('bargain_granted'); return true;
+      }
+      if (action === 'backtowork' && this.nudging) {                  // I promise to go back: thumbs up, and a minute to actually do it
+        this.nudging = false; this.bargaining = false; this.dist.nudged = false; this.dist.sec = 0; this.dist.graceUntil = this.t + this.o.backGraceSec * 1000;
+        if (!this.quiet) this.ch.play('thanks').then(ok => ok && this.state === 'focusing' && this.ch.setMood('focused'));
+        this.say('back_to_work'); return true;
+      }
       if (action === 'extend' && this.state === 'attention' && this.extensions < this.o.maxExtensions) {
         this.extensions++; this.state = 'focusing'; this._setTimer('extend', this.o.extendMin);
         if (!this.quiet) { this.ch.accept().then(ok => ok && this.ch.setMood('focused')); } this.say('extend_ok'); return true;
@@ -130,6 +188,7 @@
     _deliver(kind) {
       if (kind === 'focus' || kind === 'extend' || kind === 'remind') {
         if (this.state !== 'focusing' && this.state !== 'attention') return;
+        if (this.dist.app) { this._setTimer('remind', this.o.remindMin); return; }   // no break reminder on top of a video: the nudge handles that
         this.state = 'attention'; this.ch.minimalMotion = false; this.ch.attention();
         const acts = [{ id: 'break', label: 'Start break' }];
         if (this.extensions < this.o.maxExtensions) acts.push({ id: 'extend', label: 'Five more minutes' });
@@ -184,7 +243,7 @@
     setQuiet(on) {
       on = !!on; if (on === this.quiet) return; this.quiet = on; this._ev('quiet:' + (on ? 'on' : 'off'));
       if (on) {
-        this._stopSpeech();
+        this._stopSpeech(); this.nudging = false; this.dist.nudged = false;
         if (this.bubble && this.bubble.actionable) this.pending.push('bubble:' + this.bubble.key);
         this._hideBubble();
         if (this.state === 'meal' || this.state === 'sleeping') this.ch.setQuietLook(true); else this.ch.faceAway();

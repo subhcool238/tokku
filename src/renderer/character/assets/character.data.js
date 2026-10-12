@@ -1040,8 +1040,8 @@ window.TOKKU_CHARACTER = {
   "stop": [
    "walkd_stand"
   ],
-  "framePx": 22,
-  "fadeMs": 60,
+  "framePx": 30,
+  "fadeMs": 70,
   "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. The frame advances every framePx screen pixels, with a short blend. Mirror for left."
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
@@ -1120,8 +1120,26 @@ window.TOKKU_CHARACTER = {
   "accept": {
    "frames": [
     {
+     "pose": "paw_stop",
+     "ms": 1400
+    }
+   ],
+   "end": "rig"
+  },
+  "thanks": {
+   "frames": [
+    {
      "pose": "accept_thumbs",
-     "ms": 1000
+     "ms": 1300
+    }
+   ],
+   "end": "rig"
+  },
+  "sigh": {
+   "frames": [
+    {
+     "pose": "away_sigh",
+     "ms": 1600
     }
    ],
    "end": "rig"
@@ -1185,15 +1203,15 @@ window.TOKKU_CHARACTER = {
    "frames": [
     {
      "pose": "wake_yawn_lying",
-     "ms": 900
+     "ms": 600
     },
     {
      "pose": "wake_sit_rub",
-     "ms": 900
+     "ms": 600
     },
     {
      "pose": "stretch_up",
-     "ms": 900
+     "ms": 650
     }
    ],
    "end": "rig"
@@ -1299,8 +1317,8 @@ window.TOKKU_CHARACTER = {
   "welcome_back": {
    "frames": [
     {
-     "pose": "joy_excited",
-     "ms": 1500
+     "pose": "lean_wave",
+     "ms": 1700
     }
    ],
    "end": "rig"

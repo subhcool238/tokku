@@ -50,7 +50,7 @@
     hide() { clearTimeout(hideTimer); clearInterval(typeTimer); bubble.hidden = true; guard.front(false); },
     onTimer() {},
   };
-  const brain = new TokkuBrain(ch, ui, { homeX: HOME_X });
+  const brain = new TokkuBrain(ch, ui, { homeX: HOME_X, topTask: () => 'your work', nextTask: () => 'the next task' });   // real Notion tasks arrive in Phase 5
 
   // ---------- hover buttons: only what fits the moment ----------
   const mealNow = () => { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; };
@@ -86,11 +86,22 @@
     setOver(!!(el && el.closest('.hit')) || onCharacter(e.clientX, e.clientY));
   });
   document.addEventListener('mouseleave', () => setOver(false));
+  canvas.addEventListener('click', (e) => {                       // clicking him while he sleeps wakes him up
+    if (brain.state === 'meal' && onCharacter(e.clientX, e.clientY)) brain.endMeal();
+  });
 
   // ---------- events from Guard (tray menu now; sensing arrives in Phase 2) ----------
-  let pausedUntil = 0;
+  let pausedUntil = 0, idleSec = 0, debugOn = false, lastSense = '';
   guard.onEvent((ev) => {
-    if (ev.type === 'quiet') brain.setQuiet(ev.on);
+    if (ev.type === 'activity') {
+      idleSec = ev.idle;
+      lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
+      if (performance.now() >= pausedUntil) brain.activity(ev.idle < 60 ? ev.category : 'other', ev.app, ev.dt);   // a video only counts while you are there
+      if (ev.idle >= 300 && brain.state === 'focusing' && brain.timer && brain.timer.kind === 'focus') brain._setTimer('focus', brain.o.focusMin);   // 5 idle minutes count as a break
+    }
+    else if (ev.type === 'back') { if (ev.minutes >= 30 && !brain.quiet && brain.state !== 'meal') { ch.welcomeBack(); brain.say('welcome_back'); } }
+    else if (ev.type === 'debug') { debugOn = ev.on; $('debug').hidden = !ev.on; }
+    else if (ev.type === 'quiet') brain.setQuiet(ev.on);
     else if (ev.type === 'meal') brain.startMeal(ev.meal);
     else if (ev.type === 'pause') { pausedUntil = performance.now() + ev.minutes * 60000; ui.hide(); }
   });
@@ -101,7 +112,9 @@
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     ch.update(dt);
-    if (now >= pausedUntil) brain.tick(dt * 1000);                  // Pause 15 min: timers stand still
+    if (now >= pausedUntil && idleSec < 60) brain.tick(dt * 1000);  // timers stand still during Pause 15 min and while you are away from the keyboard
+    else if (now >= pausedUntil && brain.state !== 'focusing') brain.tick(dt * 1000);   // breaks and meals keep counting while you are away
+    if (debugOn) $('debug').textContent = lastSense + ' | ' + brain.state + (brain.timer ? ' ' + brain.timer.kind + ' ' + Math.ceil((brain.timer.endsAt - brain.t) / 1000) + ' s' : '');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ch.draw(ctx);
     if (over) showHover(true);

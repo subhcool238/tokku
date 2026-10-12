@@ -556,13 +556,15 @@ SEQUENCES = {
     "walk_stop": seq(("walk_stop_slow", 140), ("side_idle", 160)),
     "attention": seq(("wave_hello", 0), hold="wave_hello"),      # one pose: he waves hi and holds it (review, 12 Oct)
     "plead": seq(("plead", 1800)),      # one face only
-    "accept": seq(("accept_thumbs", 1000), end="rig"),
+    "accept": seq(("paw_stop", 1400), end="rig"),            # open palm, five fingers: "five more minutes"
+    "thanks": seq(("accept_thumbs", 1300), end="rig"),       # thumbs up when you go back to work
+    "sigh": seq(("away_sigh", 1600), end="rig"),             # a question he asked got no answer
     "sulk": seq(("sulk", 1500), end="rig"),
     "rest": seq(("break_stretch", 900), ("break_yawn", 1100), ("break_sit_relaxed", 60000), ("break_lie_rest", 0),
                 hold="break_lie_rest"),
     "stretch_up": seq(("break_stretch", 1000), end="rig"),
     "sleep_in": seq(("sleepy_stand", 500), ("yawn_sit", 750), ("drowsy_sit", 650)),   # then the engine shows sleep_curl and loops
-    "wake": seq(("wake_yawn_lying", 900), ("wake_sit_rub", 900), ("stretch_up", 900), end="rig"),   # no second curled up pose
+    "wake": seq(("wake_yawn_lying", 600), ("wake_sit_rub", 600), ("stretch_up", 650), end="rig"),   # no second curled up pose
     "celebrate": seq(("joy_excited", 450), ("joy_jump", 450), ("done_checkmark", 1200), ("done_proud", 900),
                      end="rig", hop={"at": "joy_jump", "heightPx": 14}),
     "annoyed_1": seq(("annoyed_mild", 1600), end="rig"),
@@ -572,7 +574,7 @@ SEQUENCES = {
     "drag_end": seq(("drag_land", 260), ("drag_sit", 900)),
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),
     "quiet_off": seq(("quiet_back_sit", 250), after="turn:0", end="rig"),
-    "welcome_back": seq(("joy_excited", 1500), end="rig"),      # simply happy to see you
+    "welcome_back": seq(("lean_wave", 1700), end="rig"),        # leans in and waves
     "surprise": seq(("surprise_start", 250), ("surprise_strong", 1000), end="rig"),      # no smiling frame at the end
     "point_at_task": seq(("found_point", 0), hold="found_point"),
     "idle_inspect": seq(("inspect_low", 1600), end="rig"),
@@ -846,7 +848,7 @@ def main():
                               "feetY": poses[n]["feetY"], "scale": poses[n]["scale"]}
                              for n, y in sorted(YAW.items(), key=lambda kv: kv[1])]}
     char["walk"] = {"right": ["walkd_2", "walkd_3", "walkd_5", "walkd_1"], "start": ["walkd_stand"], "stop": ["walkd_stand"],
-                    "framePx": 22, "fadeMs": 60,
+                    "framePx": 30, "fadeMs": 70,
                     "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. "
                             "The frame advances every framePx screen pixels, with a short blend. Mirror for left."}
     char["sequences"] = SEQUENCES
@@ -859,7 +861,11 @@ def main():
     order = [n for sid in by_sheet for n in by_sheet[sid]] + [d["name"] for d in m.get("derived", [])]
     idle_frame = {"name": "OLD IDLE (reference)", "rgb": idle[..., :3], "a": ia, "scale": 1.0,
                   "anchorX": char["rig"]["anchorX"], "feetY": char["rig"]["feetY"], "head": (rt, rn)}
-    size = contact_sheet([idle_frame] + [frames[n] for n in order], S, ref, unsure)
+    try:
+        size = contact_sheet([idle_frame] + [frames[n] for n in order], S, ref, unsure)
+    except OSError:      # the picture is open in a viewer: everything else is already written
+        size = (0, 0)
+        print("  note: art/review/contact-sheet.png is open in another program, so it was not rewritten")
 
     report = {"frames": len(frames), "unsure": unsure, "log": log}
     (REVIEW / "report.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")

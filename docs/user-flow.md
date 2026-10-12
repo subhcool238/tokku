@@ -20,13 +20,28 @@ Tokku lives in the top right corner of the desktop, behind your windows. There i
 | You hover over him | Renderer | Shows 2 small buttons that fit the moment | see below |
 | You drag him away | Renderer | Hangs, lands, walks back to his corner. Annoyed from the second time | none |
 
+## Distraction flow (video or game in front)
+
+| Step | What you see | Buttons |
+|---|---|---|
+| 45 seconds on YouTube, Netflix, Hotstar, Prime Video, Steam or Epic Games | Comes forward, points, names the app and your task | 5 more minutes, Back to work |
+| 5 more minutes | Open palm (five), then he looks away while you watch | none |
+| The 5 minutes are over and it is still in front | Checks his watch: "Please turn it off" | Back to work |
+| Back to work | Thumbs up. You get one minute to really close it | none |
+| Third nudge within 30 minutes | Angry pose, firmest line | Back to work |
+| You close the video yourself at any point | Bubble goes away, thumbs up, "Good choice" | none |
+| You ignore his question for a minute | He sighs and asks again in 2 minutes | as before |
+| After 11:30 pm | Late night lines instead of the gentle ones | as before |
+
+No nudge during a meal, in Quiet mode, or while you are away from the keyboard.
+
 ## Hover buttons
 
 | When | Buttons |
 |---|---|
 | Working | Take a break, and Breakfast, Lunch or Dinner (chosen by the time of day) |
 | On a break | Break over |
-| Meal (asleep) | I'm back |
+| Meal (asleep) | I'm back. Clicking him also wakes him |
 
 ## Focus and break loop
 
