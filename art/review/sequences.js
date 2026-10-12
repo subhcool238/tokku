@@ -84,7 +84,7 @@
     'Sleep': () => ch.sleep(), 'Wake': () => ch.wake(), 'Face away (Quiet)': () => ch.faceAway(), 'Face back': () => ch.faceBack(),
     'Talk (mouth)': () => { ch.talk(true); setTimeout(() => ch.talk(false), 2500 / speed); },
     'Blink': () => { ch.blinkClock = 0; },
-    'Mood: happy tail': () => ch.setMood('happy'), 'Mood: annoyed tail': () => ch.setMood('annoyed'), 'Mood: calm tail': () => ch.setMood('calm'),
+    'Idle: happy tail wag': () => { ch.idle(); ch.setMood('happy'); }, 'Idle: calm tail': () => { ch.idle(); ch.setMood('calm'); },
   };
   for (const [label, fn] of Object.entries(actions)) add('action-buttons', label, () => { ui.hide(); fn(); });
   for (const name of Object.keys(char.sequences)) {
@@ -100,7 +100,7 @@
     brain.setQuiet(false); ui.hide(); ch.x = HOME_X; await ch.idle(); brain.state = 'idle'; brain.drags = 0; brain.extensions = 0;
     await step(() => {}, 1500);
     await step(() => brain.startFocus(), 3500);                                   // focus starts
-    await step(() => timerDue(), 5000);                                           // 25 minutes later: attention, wave, paw up
+    await step(() => timerDue(), 5000);                                           // 25 minutes later: he waves hi
     await step(() => brain.choose('extend'), 3500);                               // "Five more minutes": thumbs up
     await step(() => timerDue(), 5000);                                           // extra time over: attention again
     await step(() => brain.choose('break'), 6000);                                // break: stretch, yawn, sit
@@ -112,7 +112,7 @@
     await step(() => brain.setQuiet(false), 4500);                                // call over
     await step(() => brain.startMeal('lunch'), 9000);                             // lunch: falls asleep, breathes
     await step(() => brain.endMeal(), 6500);                                      // meal over: wakes up
-    await step(() => { ui.hide(); ch.welcomeBack(); }, 4000);                     // back after being away
+    await step(() => { ui.hide(); ch.welcomeBack(); }, 3000);                     // back after being away
     await step(() => { ui.hide(); brain.state = 'idle'; ch.idle(); }, 1500);
     return alive();
   }

@@ -158,7 +158,7 @@
       this.drags++; const back = this.state; this.state = 'walking'; this._hideBubble();
       this.ch.x = toX;                               // the user dropped him here
       if (this.quiet) { this.ch.x = this.o.homeX; this.state = back; return true; }
-      if (this.drags >= 2) { await this.ch.annoyed(Math.min(3, this.drags), 700); this.say('dragged_again'); } else this.say('dragged');
+      if (this.drags >= 2) { await this.ch.annoyed(Math.min(3, this.drags)); this.say('dragged_again'); } else this.say('dragged');
       const ok = await this.ch.walkTo(this.o.homeX);
       if (ok) { this.state = back === 'walking' ? 'idle' : back; if (this.state === 'focusing') this.ch.setMood('focused'); }
       return ok;

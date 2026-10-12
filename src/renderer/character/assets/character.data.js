@@ -149,7 +149,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_1.png",
    "w": 531,
    "h": 626,
-   "anchorX": 314,
+   "anchorX": 366,
    "feetY": 618,
    "scale": 0.8
   },
@@ -157,7 +157,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_2.png",
    "w": 531,
    "h": 624,
-   "anchorX": 320,
+   "anchorX": 358,
    "feetY": 615,
    "scale": 0.8
   },
@@ -165,7 +165,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_3.png",
    "w": 530,
    "h": 626,
-   "anchorX": 324,
+   "anchorX": 362,
    "feetY": 618,
    "scale": 0.8
   },
@@ -173,7 +173,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_4.png",
    "w": 531,
    "h": 625,
-   "anchorX": 301,
+   "anchorX": 344,
    "feetY": 617,
    "scale": 0.8
   },
@@ -181,7 +181,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_5.png",
    "w": 530,
    "h": 580,
-   "anchorX": 278,
+   "anchorX": 295,
    "feetY": 572,
    "scale": 0.868
   },
@@ -189,7 +189,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_6.png",
    "w": 434,
    "h": 565,
-   "anchorX": 267,
+   "anchorX": 298,
    "feetY": 557,
    "scale": 0.868
   },
@@ -197,7 +197,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_7.png",
    "w": 442,
    "h": 575,
-   "anchorX": 270,
+   "anchorX": 296,
    "feetY": 567,
    "scale": 0.868
   },
@@ -205,7 +205,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_8.png",
    "w": 500,
    "h": 588,
-   "anchorX": 284,
+   "anchorX": 312,
    "feetY": 580,
    "scale": 0.868
   },
@@ -213,7 +213,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_start_lean.png",
    "w": 439,
    "h": 655,
-   "anchorX": 266,
+   "anchorX": 290,
    "feetY": 648,
    "scale": 0.789
   },
@@ -221,7 +221,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_start_step.png",
    "w": 587,
    "h": 632,
-   "anchorX": 346,
+   "anchorX": 436,
    "feetY": 625,
    "scale": 0.789
   },
@@ -229,7 +229,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/walk_stop_slow.png",
    "w": 496,
    "h": 655,
-   "anchorX": 306,
+   "anchorX": 344,
    "feetY": 647,
    "scale": 0.789
   },
@@ -237,7 +237,7 @@ window.TOKKU_CHARACTER = {
    "file": "v3/side_idle.png",
    "w": 445,
    "h": 666,
-   "anchorX": 262,
+   "anchorX": 294,
    "feetY": 658,
    "scale": 0.789
   },
@@ -984,22 +984,12 @@ window.TOKKU_CHARACTER = {
    "walk_1",
    "walk_2",
    "walk_3",
-   "walk_4",
-   "walk_5",
-   "walk_6",
-   "walk_7",
-   "walk_8"
+   "walk_4"
   ],
-  "start": [
-   "walk_start_lean",
-   "walk_start_step"
-  ],
-  "stop": [
-   "walk_stop_slow",
-   "side_idle"
-  ],
-  "framePx": 11,
-  "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."
+  "start": [],
+  "stop": [],
+  "framePx": 14,
+  "note": "4 frame cycle from S01 only (contact, down, passing, up), facing right. In side view both legs look the same, so one step repeated reads as walking, and all 4 frames share one drawing style. The frame advances every framePx screen pixels. Mirror for left."
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
  "sequences": {
@@ -1061,24 +1051,16 @@ window.TOKKU_CHARACTER = {
    "frames": [
     {
      "pose": "wave_hello",
-     "ms": 1000
-    },
-    {
-     "pose": "paw_stop",
      "ms": 0
     }
    ],
-   "hold": "paw_stop"
+   "hold": "wave_hello"
   },
   "plead": {
    "frames": [
     {
      "pose": "plead",
-     "ms": 1400
-    },
-    {
-     "pose": "hopeful",
-     "ms": 1200
+     "ms": 1800
     }
    ]
   },
@@ -1149,28 +1131,16 @@ window.TOKKU_CHARACTER = {
   "wake": {
    "frames": [
     {
-     "pose": "wake_ear_lift",
-     "ms": 400
-    },
-    {
-     "pose": "wake_peek",
-     "ms": 500
-    },
-    {
      "pose": "wake_yawn_lying",
-     "ms": 750
-    },
-    {
-     "pose": "wake_lying",
-     "ms": 450
+     "ms": 900
     },
     {
      "pose": "wake_sit_rub",
-     "ms": 700
+     "ms": 900
     },
     {
      "pose": "stretch_up",
-     "ms": 700
+     "ms": 900
     }
    ],
    "end": "rig"
@@ -1276,16 +1246,8 @@ window.TOKKU_CHARACTER = {
   "welcome_back": {
    "frames": [
     {
-     "pose": "away_check_time",
-     "ms": 800
-    },
-    {
-     "pose": "away_sigh",
-     "ms": 800
-    },
-    {
      "pose": "joy_excited",
-     "ms": 900
+     "ms": 1500
     }
    ],
    "end": "rig"
@@ -1315,15 +1277,6 @@ window.TOKKU_CHARACTER = {
     }
    ],
    "hold": "found_point"
-  },
-  "idle_think": {
-   "frames": [
-    {
-     "pose": "think_chin",
-     "ms": 1800
-    }
-   ],
-   "end": "rig"
   },
   "idle_inspect": {
    "frames": [

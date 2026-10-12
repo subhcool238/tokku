@@ -153,7 +153,7 @@
       this.rig(150); this.bounce(0.6); this.mode = 'idle'; return true;
     }
 
-    async attention() {   // notice, lean in, wave, then hold a paw up while the bubble with buttons is open
+    async attention() {   // waves hi and holds it while the bubble with buttons is open
       const tk = this._begin(); this.sleeping = false; this.mode = 'attention'; this.leanTarget = 0;
       if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
       this.setMood('happy');
@@ -169,12 +169,11 @@
       this.setMood('happy'); await this.wait(800); if (!this._alive(tk)) return false;
       this.setMood('calm'); this.mode = 'idle'; return true;
     }
-    async annoyed(level = 1, after = 1500) {   // level 1 mild, 2 questioning, 3 angry (never shouting)
+    async annoyed(level = 1) {   // level 1 mild, 2 questioning, 3 angry (never shouting)
       const tk = this._begin(); this.mode = 'annoyed'; this.sleeping = false;
       level = clamp(Math.round(level) || 1, 1, 3);
-      if (!await this._run('annoyed_' + level, tk)) return false;
-      this.setMood('annoyed'); await this.wait(after); if (!this._alive(tk)) return false;
-      this.setMood('calm'); this.mode = 'idle'; return true;
+      if (!await this._run('annoyed_' + level, tk)) return false;       // the annoyed face is the pose itself;
+      this.setMood('calm'); this.mode = 'idle'; return true;            // the smiling idle never gets an annoyed tail
     }
     async plead() {   // when a reminder is ignored
       const tk = this._begin(); this.mode = 'pleading'; this.sleeping = false;
@@ -232,7 +231,7 @@
       if (!await this.turnTo(0, tk)) return false; this.rig(150); this.mode = 'idle'; return true;
     }
     async _variety() {   // idle only: a thought, a look at the ground, or a glance to the side
-      const names = ['idle_think', 'idle_inspect', 'idle_glance'];
+      const names = ['idle_inspect', 'idle_glance'];
       const tk = this._begin(); this.mode = 'variety';
       if (await this._run(names[Math.floor(Math.random() * names.length)], tk)) this.mode = 'idle';
     }

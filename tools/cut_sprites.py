@@ -439,6 +439,10 @@ def anchor_x(a, name):
     if name.startswith(WALK_LIKE):
         hh = head_height(a)
         if hh:
+            # the head glides forward evenly in a walk, so it is the steadiest thing to pin each frame to
+            xs = np.flatnonzero(m[hh[0]:hh[1]].any(0))
+            return (int(xs[0]) + int(xs[-1])) / 2
+        if hh:
             # centre of the torso just below the neck, following the same column as the head
             y0, y1 = hh[1] + int(0.10 * H), hh[1] + int(0.30 * H)
             xs = np.flatnonzero(m[hh[1]])
@@ -549,16 +553,15 @@ SEQUENCES = {
     "walk_start": seq(("walk_start_lean", 120), ("walk_start_step", 120)),
     "walk_cycle": {"frames": [{"pose": p} for p in WALK8], "advance": "distance", "loop": True},
     "walk_stop": seq(("walk_stop_slow", 140), ("side_idle", 160)),
-    "attention": seq(("wave_hello", 1000), ("paw_stop", 0), hold="paw_stop"),      # two poses only, more looked jerky
-    "plead": seq(("plead", 1400), ("hopeful", 1200)),
+    "attention": seq(("wave_hello", 0), hold="wave_hello"),      # one pose: he waves hi and holds it (review, 12 Oct)
+    "plead": seq(("plead", 1800)),      # one face only
     "accept": seq(("accept_thumbs", 1000), end="rig"),
     "sulk": seq(("sulk", 1500), end="rig"),
     "rest": seq(("break_stretch", 900), ("break_yawn", 1100), ("break_sit_relaxed", 60000), ("break_lie_rest", 0),
                 hold="break_lie_rest"),
     "stretch_up": seq(("break_stretch", 1000), end="rig"),
     "sleep_in": seq(("sleepy_stand", 800), ("yawn_sit", 1100), ("drowsy_sit", 1100)),   # then the engine shows sleep_curl and loops
-    "wake": seq(("wake_ear_lift", 400), ("wake_peek", 500), ("wake_yawn_lying", 750), ("wake_lying", 450),
-                ("wake_sit_rub", 700), ("stretch_up", 700), end="rig"),
+    "wake": seq(("wake_yawn_lying", 900), ("wake_sit_rub", 900), ("stretch_up", 900), end="rig"),   # no second curled up pose
     "celebrate": seq(("joy_excited", 450), ("joy_jump", 450), ("done_checkmark", 1200), ("done_proud", 900),
                      end="rig", hop={"at": "joy_jump", "heightPx": 14}),
     "annoyed_1": seq(("annoyed_mild", 1600), end="rig"),
@@ -568,10 +571,9 @@ SEQUENCES = {
     "drag_end": seq(("drag_land", 260), ("drag_sit", 900)),
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),
     "quiet_off": seq(("quiet_back_sit", 250), after="turn:0", end="rig"),
-    "welcome_back": seq(("away_check_time", 800), ("away_sigh", 800), ("joy_excited", 900), end="rig"),
+    "welcome_back": seq(("joy_excited", 1500), end="rig"),      # simply happy to see you
     "surprise": seq(("surprise_start", 250), ("surprise_strong", 700), ("surprise_recover", 600), end="rig"),
     "point_at_task": seq(("found_point", 0), hold="found_point"),
-    "idle_think": seq(("think_chin", 1800), end="rig"),
     "idle_inspect": seq(("inspect_low", 1600), end="rig"),
     "idle_glance": seq(("turn_030", 600), end="rig"),
 }
@@ -838,8 +840,10 @@ def main():
                     "ring": [{"yaw": y, "pose": n, "file": f"v3/{n}.png", "anchorX": poses[n]["anchorX"],
                               "feetY": poses[n]["feetY"], "scale": poses[n]["scale"]}
                              for n, y in sorted(YAW.items(), key=lambda kv: kv[1])]}
-    char["walk"] = {"right": WALK8, "start": ["walk_start_lean", "walk_start_step"], "stop": ["walk_stop_slow", "side_idle"],
-                    "framePx": 11, "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."}
+    char["walk"] = {"right": WALK8[:4], "start": [], "stop": [], "framePx": 14,
+                    "note": "4 frame cycle from S01 only (contact, down, passing, up), facing right. In side view both legs look "
+                            "the same, so one step repeated reads as walking, and all 4 frames share one drawing style. "
+                            "The frame advances every framePx screen pixels. Mirror for left."}
     char["sequences"] = SEQUENCES
     char["scaleNote"] = ("Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest "
                          "circle that fits in the head. Manual corrections: art/scale-overrides.json.")
