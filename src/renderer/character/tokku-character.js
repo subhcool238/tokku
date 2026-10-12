@@ -22,6 +22,7 @@
   const TAU = Math.PI * 2;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, k) => a + (b - a) * k;
+  const W_SPEED = 120;   // walking speed, screen pixels per second
   const smooth = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
 
   // Tail moods: base angle (deg, + = tip up toward body), sway amplitude, sway Hz, scale (puff), bristle jitter
@@ -115,17 +116,21 @@
     talk(on) { this.talking = !!on; if (!on) this.mouth = 0; }
     setQuietLook(on) { this.alphaTarget = on ? 0.55 : 1; }
 
+    // Turns through the ring views. The front view is never shown: facing the user is always the idle rig,
+    // so a turn starts at 30 degrees and a turn to the front ends in the rig.
     async turnTo(yaw, tk = this.token) {
-      if (this.visual.type !== 'ring') { this.setVisual({ type: 'ring', idx: this.ringIdx(this.yaw) }, 140); await this.wait(110); if (!this._alive(tk)) return false; }
-      const want = this.ringIdx(yaw); const n = this.ring.length;
-      let idx = this.visual.idx;
+      const n = this.ring.length, want = this.ringIdx(yaw), zero = this.ringIdx(0);
+      let idx = this.visual.type === 'ring' ? this.visual.idx : this.ringIdx(this.yaw);
+      if (this.visual.type !== 'ring' && idx !== zero) { this.setVisual({ type: 'ring', idx }, 140); await this.wait(110); if (!this._alive(tk)) return false; }
       while (idx !== want) {
         const plus = ((this.ring[want].yaw - this.ring[idx].yaw) + 360) % 360;
         idx = (idx + (plus <= 180 ? 1 : -1) + n) % n;
+        if (idx === zero) continue;
         this.setVisual({ type: 'ring', idx }, 80);
         this.yaw = this.ring[idx].yaw;
         await this.wait(72); if (!this._alive(tk)) return false;
       }
+      if (want === zero) { this.rig(130); await this.wait(110); if (!this._alive(tk)) return false; }
       this.yaw = yaw; return true;
     }
 
@@ -189,17 +194,9 @@
       const tk = this._begin(); this.mode = 'sleeping'; this.setMood('sleepy');
       if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
       if (!await this._run('sleep_in', tk)) return false;
-      this.pose('sleep_curl', 150); this.sleeping = true; this.breathAmp = 0.008; this.breathHz = 0.22;
-      this._sleepLoop(tk);
+      // one sleeping picture only: he breathes by a slow, small scale up and down (no picture changes)
+      this.pose('sleep_curl', 150); this.sleeping = true; this.breathAmp = 0.022; this.breathHz = 0.2;
       return true;
-    }
-    async _sleepLoop(tk) {   // breathe in, breathe out, now and then an ear twitch or a tail curl
-      const q = this.c.sequences.sleep_loop;
-      await this.wait(800);
-      while (this._alive(tk)) {
-        for (const f of q.frames) { this.pose(f.pose, 500); await this.wait(f.ms); if (!this._alive(tk)) return; }
-        for (const e of q.extras || []) if (Math.random() < e.chance) { this.pose(e.pose, 200); await this.wait(e.ms); if (!this._alive(tk)) return; }
-      }
     }
     async wake() {
       const tk = this._begin(); this.mode = 'waking'; this.sleeping = false;
@@ -292,14 +289,14 @@
     }
 
     _walkStep(dt) {
-      const w = this.walk, vmax = 150, acc = 420, dec = 380, W = this.c.walk, frames = W.right, per = W.framePx || 9;
+      const w = this.walk, vmax = W_SPEED, acc = 360, dec = 320, W = this.c.walk, frames = W.right, per = W.framePx || 11;
       const rem = Math.abs(w.tx - this.x);
       const vStop = Math.sqrt(2 * dec * rem);
       w.v = Math.min(w.v + acc * dt, vmax, Math.max(24, vStop));
       const step = Math.min(rem, w.v * dt);
       this.x += w.dir * step; w.dist += step;
       const f = Math.floor(w.dist / per) % frames.length;     // the frame follows distance, so the feet do not slide
-      if (f !== w.frame) { w.frame = f; this.pose(frames[f], 60, w.dir < 0, true); }
+      if (f !== w.frame) { w.frame = f; this.pose(frames[f], 0, w.dir < 0, true); }   // hard cut: a fade would smear the fast frames
       this.leanTarget = w.dir * 0.02 * (w.v / vmax);
       if (rem - step < 0.5) { this.x = w.tx; const d = w.done; this.walk = null; d(true); }
     }

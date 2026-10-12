@@ -549,19 +549,16 @@ SEQUENCES = {
     "walk_start": seq(("walk_start_lean", 120), ("walk_start_step", 120)),
     "walk_cycle": {"frames": [{"pose": p} for p in WALK8], "advance": "distance", "loop": True},
     "walk_stop": seq(("walk_stop_slow", 140), ("side_idle", 160)),
-    "attention": seq(("notice", 350), ("lean_wave", 300), ("wave_hello", 700), ("paw_stop", 0), hold="paw_stop"),
+    "attention": seq(("wave_hello", 1000), ("paw_stop", 0), hold="paw_stop"),      # two poses only, more looked jerky
     "plead": seq(("plead", 1400), ("hopeful", 1200)),
     "accept": seq(("accept_thumbs", 1000), end="rig"),
     "sulk": seq(("sulk", 1500), end="rig"),
     "rest": seq(("break_stretch", 900), ("break_yawn", 1100), ("break_sit_relaxed", 60000), ("break_lie_rest", 0),
                 hold="break_lie_rest"),
-    "stretch_up": seq(("break_stretch", 900), ("awake_front", 500), end="rig"),
+    "stretch_up": seq(("break_stretch", 1000), end="rig"),
     "sleep_in": seq(("sleepy_stand", 800), ("yawn_sit", 1100), ("drowsy_sit", 1100)),   # then the engine shows sleep_curl and loops
-    "sleep_loop": seq(("sleep_breathe_in", 1600), ("sleep_breathe_out", 1600), loop=True,
-                      extras=[{"pose": "sleep_ear_twitch", "ms": 500, "chance": 0.12},
-                              {"pose": "sleep_tail_curl", "ms": 1200, "chance": 0.08}]),
     "wake": seq(("wake_ear_lift", 400), ("wake_peek", 500), ("wake_yawn_lying", 750), ("wake_lying", 450),
-                ("wake_sit_rub", 650), ("stretch_up", 550), ("awake_front", 350), end="rig"),
+                ("wake_sit_rub", 700), ("stretch_up", 700), end="rig"),
     "celebrate": seq(("joy_excited", 450), ("joy_jump", 450), ("done_checkmark", 1200), ("done_proud", 900),
                      end="rig", hop={"at": "joy_jump", "heightPx": 14}),
     "annoyed_1": seq(("annoyed_mild", 1600), end="rig"),
@@ -763,6 +760,24 @@ def main():
                 frames[n]["scale"] = g
         print(f"  size {'+'.join(group)}: one uniform scale {g:.3f}")
 
+    # ---- standing height: turn and walk frames stand exactly as tall as the idle (heads were matched above,
+    # but these sheets are drawn with different head to body proportions, and a height jump shows more)
+    stand = char["rig"].get("standPx")
+    if stand:
+        tall = lambda n: frames[n]["feetY"] - MARGIN
+        for sid in ("S04", "S05"):
+            for n in by_sheet[sid]:
+                frames[n]["scale"] = stand / tall(n)
+        k = stand / tall("side_idle")
+        for n in by_sheet["S03"]:
+            frames[n]["scale"] = k
+        walking = tall("walk_start_step") / tall("side_idle")          # how much lower he is in mid step than standing
+        for sid in ("S01", "S02"):
+            k = stand * walking / float(np.mean([tall(n) for n in by_sheet[sid]]))
+            for n in by_sheet[sid]:
+                frames[n]["scale"] = k
+        print(f"  standing height {stand:.0f} px: turn and walk frames scaled to it")
+
     # ---- mirror and derived frames
     def mirrored(f, name):
         g = dict(f)
@@ -824,7 +839,7 @@ def main():
                               "feetY": poses[n]["feetY"], "scale": poses[n]["scale"]}
                              for n, y in sorted(YAW.items(), key=lambda kv: kv[1])]}
     char["walk"] = {"right": WALK8, "start": ["walk_start_lean", "walk_start_step"], "stop": ["walk_stop_slow", "side_idle"],
-                    "framePx": 9, "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."}
+                    "framePx": 11, "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."}
     char["sequences"] = SEQUENCES
     char["scaleNote"] = ("Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest "
                          "circle that fits in the head. Manual corrections: art/scale-overrides.json.")

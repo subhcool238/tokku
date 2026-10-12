@@ -1,41 +1,5 @@
 {
  "_about": "Manual corrections applied last by tools/cut_sprites.py. Keys per frame: scale, anchorX, feetY. Set by eye on the contact sheet.",
- "walk_5": {
-  "scale": 0.9,
-  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
- },
- "walk_6": {
-  "scale": 0.9,
-  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
- },
- "walk_7": {
-  "scale": 0.9,
-  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
- },
- "walk_8": {
-  "scale": 0.9,
-  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
- },
- "walk_start_lean": {
-  "scale": 0.86,
-  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
- },
- "walk_start_step": {
-  "scale": 0.86,
-  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
- },
- "walk_stop_slow": {
-  "scale": 0.86,
-  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
- },
- "side_idle": {
-  "scale": 0.86,
-  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
- },
- "awake_front": {
-  "scale": 0.86,
-  "why": "small head on a tall body; kept near the turn frames"
- },
  "done_checkmark": {
   "scale": 0.73,
   "why": "the check mark hides the measurement; same as its sheet"

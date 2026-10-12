@@ -25,6 +25,7 @@ SRC = next((p for p in (ROOT / "art" / "idle" / "idle_4frames.png", ROOT / "art"
 OUT = cs.ASSETS / "rig_v3"
 PAD = 24
 OLD_IDLE_HEAD_RADIUS = 87.2      # head size every frame is matched to (see cut_sprites.py)
+IDLE_BOOST = 1.07                # the idle looked a little small next to the other frames (review, 12 Oct)
 
 
 def dark_parts(rgb, a):
@@ -161,7 +162,8 @@ def main():
         char["rig_old"]["note2"] = "Old idle rig (art v2), kept for reference. Files are in assets/rig."
     char["rig"] = {
         "w": W, "h": H, "anchorX": round(cs.anchor_x(A, "idle")), "feetY": feet,
-        "scale": round(OLD_IDLE_HEAD_RADIUS / radius, 3),
+        "scale": round(OLD_IDLE_HEAD_RADIUS / radius * IDLE_BOOST, 3),
+        "standPx": round((feet - PAD) * OLD_IDLE_HEAD_RADIUS / radius * IDLE_BOOST, 1),
         "layers": {"body": "rig_v3/body.png", "tail": "rig_v3/tail.png", "ear_l": "rig_v3/ear_l.png", "ear_r": "rig_v3/ear_r.png"},
         "overlays": {"blink_half": "rig_v3/blink_half.png", "blink_closed": "rig_v3/blink_closed.png", "mouth_open": "rig_v3/mouth_open.png"},
         "pivots": pivots, "tailRotationLimits": [-2, 14], "tailSign": -1,

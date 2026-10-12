@@ -13,7 +13,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_210.png",
     "anchorX": 152,
     "feetY": 670,
-    "scale": 0.798
+    "scale": 0.775
    },
    {
     "yaw": -120,
@@ -21,7 +21,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_240.png",
     "anchorX": 154,
     "feetY": 666,
-    "scale": 0.798
+    "scale": 0.78
    },
    {
     "yaw": -90,
@@ -29,7 +29,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_270.png",
     "anchorX": 170,
     "feetY": 698,
-    "scale": 0.798
+    "scale": 0.744
    },
    {
     "yaw": -60,
@@ -37,7 +37,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_300.png",
     "anchorX": 194,
     "feetY": 698,
-    "scale": 0.798
+    "scale": 0.744
    },
    {
     "yaw": -30,
@@ -45,7 +45,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_330.png",
     "anchorX": 138,
     "feetY": 696,
-    "scale": 0.798
+    "scale": 0.746
    },
    {
     "yaw": 0,
@@ -53,7 +53,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_000.png",
     "anchorX": 270,
     "feetY": 693,
-    "scale": 0.798
+    "scale": 0.749
    },
    {
     "yaw": 30,
@@ -61,7 +61,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_030.png",
     "anchorX": 308,
     "feetY": 696,
-    "scale": 0.798
+    "scale": 0.746
    },
    {
     "yaw": 60,
@@ -69,7 +69,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_060.png",
     "anchorX": 334,
     "feetY": 698,
-    "scale": 0.798
+    "scale": 0.744
    },
    {
     "yaw": 90,
@@ -77,7 +77,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_090.png",
     "anchorX": 344,
     "feetY": 698,
-    "scale": 0.798
+    "scale": 0.744
    },
    {
     "yaw": 120,
@@ -85,7 +85,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_120.png",
     "anchorX": 316,
     "feetY": 666,
-    "scale": 0.798
+    "scale": 0.78
    },
    {
     "yaw": 150,
@@ -93,7 +93,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_150.png",
     "anchorX": 311,
     "feetY": 670,
-    "scale": 0.798
+    "scale": 0.775
    },
    {
     "yaw": 180,
@@ -101,7 +101,7 @@ window.TOKKU_CHARACTER = {
     "file": "v3/turn_180.png",
     "anchorX": 284,
     "feetY": 680,
-    "scale": 0.798
+    "scale": 0.764
    }
   ]
  },
@@ -110,7 +110,8 @@ window.TOKKU_CHARACTER = {
   "h": 668,
   "anchorX": 244,
   "feetY": 636,
-  "scale": 0.786,
+  "scale": 0.841,
+  "standPx": 514.7,
   "layers": {
    "body": "rig_v3/body.png",
    "tail": "rig_v3/tail.png",
@@ -150,7 +151,7 @@ window.TOKKU_CHARACTER = {
    "h": 626,
    "anchorX": 314,
    "feetY": 618,
-   "scale": 0.82
+   "scale": 0.8
   },
   "walk_2": {
    "file": "v3/walk_2.png",
@@ -158,7 +159,7 @@ window.TOKKU_CHARACTER = {
    "h": 624,
    "anchorX": 320,
    "feetY": 615,
-   "scale": 0.82
+   "scale": 0.8
   },
   "walk_3": {
    "file": "v3/walk_3.png",
@@ -166,7 +167,7 @@ window.TOKKU_CHARACTER = {
    "h": 626,
    "anchorX": 324,
    "feetY": 618,
-   "scale": 0.82
+   "scale": 0.8
   },
   "walk_4": {
    "file": "v3/walk_4.png",
@@ -174,7 +175,7 @@ window.TOKKU_CHARACTER = {
    "h": 625,
    "anchorX": 301,
    "feetY": 617,
-   "scale": 0.82
+   "scale": 0.8
   },
   "walk_5": {
    "file": "v3/walk_5.png",
@@ -182,7 +183,7 @@ window.TOKKU_CHARACTER = {
    "h": 580,
    "anchorX": 278,
    "feetY": 572,
-   "scale": 0.9
+   "scale": 0.868
   },
   "walk_6": {
    "file": "v3/walk_6.png",
@@ -190,7 +191,7 @@ window.TOKKU_CHARACTER = {
    "h": 565,
    "anchorX": 267,
    "feetY": 557,
-   "scale": 0.9
+   "scale": 0.868
   },
   "walk_7": {
    "file": "v3/walk_7.png",
@@ -198,7 +199,7 @@ window.TOKKU_CHARACTER = {
    "h": 575,
    "anchorX": 270,
    "feetY": 567,
-   "scale": 0.9
+   "scale": 0.868
   },
   "walk_8": {
    "file": "v3/walk_8.png",
@@ -206,7 +207,7 @@ window.TOKKU_CHARACTER = {
    "h": 588,
    "anchorX": 284,
    "feetY": 580,
-   "scale": 0.9
+   "scale": 0.868
   },
   "walk_start_lean": {
    "file": "v3/walk_start_lean.png",
@@ -214,7 +215,7 @@ window.TOKKU_CHARACTER = {
    "h": 655,
    "anchorX": 266,
    "feetY": 648,
-   "scale": 0.86
+   "scale": 0.789
   },
   "walk_start_step": {
    "file": "v3/walk_start_step.png",
@@ -222,7 +223,7 @@ window.TOKKU_CHARACTER = {
    "h": 632,
    "anchorX": 346,
    "feetY": 625,
-   "scale": 0.86
+   "scale": 0.789
   },
   "walk_stop_slow": {
    "file": "v3/walk_stop_slow.png",
@@ -230,7 +231,7 @@ window.TOKKU_CHARACTER = {
    "h": 655,
    "anchorX": 306,
    "feetY": 647,
-   "scale": 0.86
+   "scale": 0.789
   },
   "side_idle": {
    "file": "v3/side_idle.png",
@@ -238,7 +239,7 @@ window.TOKKU_CHARACTER = {
    "h": 666,
    "anchorX": 262,
    "feetY": 658,
-   "scale": 0.86
+   "scale": 0.789
   },
   "turn_000": {
    "file": "v3/turn_000.png",
@@ -246,7 +247,7 @@ window.TOKKU_CHARACTER = {
    "h": 701,
    "anchorX": 270,
    "feetY": 693,
-   "scale": 0.798
+   "scale": 0.749
   },
   "turn_030": {
    "file": "v3/turn_030.png",
@@ -254,7 +255,7 @@ window.TOKKU_CHARACTER = {
    "h": 704,
    "anchorX": 308,
    "feetY": 696,
-   "scale": 0.798
+   "scale": 0.746
   },
   "turn_060": {
    "file": "v3/turn_060.png",
@@ -262,7 +263,7 @@ window.TOKKU_CHARACTER = {
    "h": 706,
    "anchorX": 334,
    "feetY": 698,
-   "scale": 0.798
+   "scale": 0.744
   },
   "turn_090": {
    "file": "v3/turn_090.png",
@@ -270,7 +271,7 @@ window.TOKKU_CHARACTER = {
    "h": 705,
    "anchorX": 344,
    "feetY": 698,
-   "scale": 0.798
+   "scale": 0.744
   },
   "turn_120": {
    "file": "v3/turn_120.png",
@@ -278,7 +279,7 @@ window.TOKKU_CHARACTER = {
    "h": 674,
    "anchorX": 316,
    "feetY": 666,
-   "scale": 0.798
+   "scale": 0.78
   },
   "turn_150": {
    "file": "v3/turn_150.png",
@@ -286,7 +287,7 @@ window.TOKKU_CHARACTER = {
    "h": 678,
    "anchorX": 311,
    "feetY": 670,
-   "scale": 0.798
+   "scale": 0.775
   },
   "turn_180": {
    "file": "v3/turn_180.png",
@@ -294,7 +295,7 @@ window.TOKKU_CHARACTER = {
    "h": 687,
    "anchorX": 284,
    "feetY": 680,
-   "scale": 0.798
+   "scale": 0.764
   },
   "sleepy_stand": {
    "file": "v3/sleepy_stand.png",
@@ -382,7 +383,7 @@ window.TOKKU_CHARACTER = {
    "h": 678,
    "anchorX": 276,
    "feetY": 670,
-   "scale": 0.86
+   "scale": 0.937
   },
   "wake_ear_lift": {
    "file": "v3/wake_ear_lift.png",
@@ -745,7 +746,7 @@ window.TOKKU_CHARACTER = {
    "h": 678,
    "anchorX": 152,
    "feetY": 670,
-   "scale": 0.798
+   "scale": 0.775
   },
   "turn_240": {
    "file": "v3/turn_240.png",
@@ -753,7 +754,7 @@ window.TOKKU_CHARACTER = {
    "h": 674,
    "anchorX": 154,
    "feetY": 666,
-   "scale": 0.798
+   "scale": 0.78
   },
   "turn_270": {
    "file": "v3/turn_270.png",
@@ -761,7 +762,7 @@ window.TOKKU_CHARACTER = {
    "h": 705,
    "anchorX": 170,
    "feetY": 698,
-   "scale": 0.798
+   "scale": 0.744
   },
   "turn_300": {
    "file": "v3/turn_300.png",
@@ -769,7 +770,7 @@ window.TOKKU_CHARACTER = {
    "h": 706,
    "anchorX": 194,
    "feetY": 698,
-   "scale": 0.798
+   "scale": 0.744
   },
   "turn_330": {
    "file": "v3/turn_330.png",
@@ -777,7 +778,7 @@ window.TOKKU_CHARACTER = {
    "h": 704,
    "anchorX": 138,
    "feetY": 696,
-   "scale": 0.798
+   "scale": 0.746
   },
   "idle_a": {
    "file": "_old/poses/idle_a.png",
@@ -997,7 +998,7 @@ window.TOKKU_CHARACTER = {
    "walk_stop_slow",
    "side_idle"
   ],
-  "framePx": 9,
+  "framePx": 11,
   "note": "8 frame cycle facing right. The frame advances every framePx screen pixels. Mirror for left."
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
@@ -1059,16 +1060,8 @@ window.TOKKU_CHARACTER = {
   "attention": {
    "frames": [
     {
-     "pose": "notice",
-     "ms": 350
-    },
-    {
-     "pose": "lean_wave",
-     "ms": 300
-    },
-    {
      "pose": "wave_hello",
-     "ms": 700
+     "ms": 1000
     },
     {
      "pose": "paw_stop",
@@ -1132,11 +1125,7 @@ window.TOKKU_CHARACTER = {
    "frames": [
     {
      "pose": "break_stretch",
-     "ms": 900
-    },
-    {
-     "pose": "awake_front",
-     "ms": 500
+     "ms": 1000
     }
    ],
    "end": "rig"
@@ -1154,31 +1143,6 @@ window.TOKKU_CHARACTER = {
     {
      "pose": "drowsy_sit",
      "ms": 1100
-    }
-   ]
-  },
-  "sleep_loop": {
-   "frames": [
-    {
-     "pose": "sleep_breathe_in",
-     "ms": 1600
-    },
-    {
-     "pose": "sleep_breathe_out",
-     "ms": 1600
-    }
-   ],
-   "loop": true,
-   "extras": [
-    {
-     "pose": "sleep_ear_twitch",
-     "ms": 500,
-     "chance": 0.12
-    },
-    {
-     "pose": "sleep_tail_curl",
-     "ms": 1200,
-     "chance": 0.08
     }
    ]
   },
@@ -1202,15 +1166,11 @@ window.TOKKU_CHARACTER = {
     },
     {
      "pose": "wake_sit_rub",
-     "ms": 650
+     "ms": 700
     },
     {
      "pose": "stretch_up",
-     "ms": 550
-    },
-    {
-     "pose": "awake_front",
-     "ms": 350
+     "ms": 700
     }
    ],
    "end": "rig"
