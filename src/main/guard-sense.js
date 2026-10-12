@@ -10,7 +10,9 @@ const POLL_MS = 3000;
 const VIDEO = [['youtube', 'YouTube'], ['netflix', 'Netflix'], ['jiohotstar', 'Hotstar'], ['hotstar', 'Hotstar'], ['prime video', 'Prime Video'], ['primevideo', 'Prime Video']];
 const GAME = [['steam', 'Steam'], ['epic games', 'Epic Games']];
 const MEETING = ['zoom meeting', 'meet -', 'microsoft teams', 'webex', 'skype', 'discord'];
-const SHELL = ['explorer.exe', 'windows explorer', 'searchhost.exe', 'shellexperiencehost.exe', 'lockapp.exe'];
+// never counted as a full screen work app: the desktop itself, and screenshot overlays (Win + Shift + S)
+const NOT_FULLSCREEN_APP = /explorer|search|shell ?experience|lock ?app|snip|screen ?clipping|screen ?sketch|screenshot|sharex|lightshot|greenshot/i;
+const FULLSCREEN_POLLS = 3;      // full screen must last about 9 seconds before it means Quiet mode
 
 function classify(title, owner) {
   const t = (title || '').toLowerCase(), o = (owner || '').toLowerCase();
@@ -31,7 +33,7 @@ function deviceInUse(kind) {
 }
 
 function start(onReport, options) {
-  let activeWindow = null, locked = false, awaySince = 0, busy = false, lastPoll = Date.now();
+  let activeWindow = null, locked = false, awaySince = 0, busy = false, lastPoll = Date.now(), fullCount = 0;
   import('get-windows').then(m => { activeWindow = m.activeWindow; }).catch(() => {});
   powerMonitor.on('lock-screen', () => { locked = true; if (!awaySince) awaySince = Date.now(); });
   powerMonitor.on('unlock-screen', () => { locked = false; });
@@ -49,13 +51,15 @@ function start(onReport, options) {
           const owner = (w.owner && w.owner.name) || '';
           seen = classify(w.title, owner);                             // the raw title is not kept beyond this line
           const d = screen.getDisplayMatching(w.bounds).bounds, b = w.bounds;
-          full = !SHELL.includes(owner.toLowerCase()) && !!w.title && b.x <= d.x && b.y <= d.y && b.width >= d.width && b.height >= d.height;
+          full = !NOT_FULLSCREEN_APP.test(owner + ' ' + ((w.owner && w.owner.path) || '').split(/[\\/]/).pop()) && !!w.title
+            && b.x <= d.x && b.y <= d.y && b.width >= d.width && b.height >= d.height;
         }
       }
       const reasons = [];
       if (seen.category === 'meeting') reasons.push('meeting');
       if (options.micCamera()) { const [mic, cam] = await Promise.all([deviceInUse('microphone'), deviceInUse('webcam')]); if (mic) reasons.push('mic'); if (cam) reasons.push('camera'); }
-      if (full && seen.category !== 'video' && seen.category !== 'game') reasons.push('fullscreen');
+      fullCount = (full && seen.category !== 'video' && seen.category !== 'game') ? fullCount + 1 : 0;
+      if (fullCount >= FULLSCREEN_POLLS) reasons.push('fullscreen');
 
       // away: idle or locked. Reported once, when you come back.
       if ((idle >= 60 || locked) && !awaySince) awaySince = now - idle * 1000;

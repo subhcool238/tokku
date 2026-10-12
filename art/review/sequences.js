@@ -116,7 +116,7 @@
     watching = null; brain.nudges = []; brain.setQuiet(false); ui.hide(); ch.x = HOME_X; await ch.idle(); brain.state = 'idle'; brain.drags = 0; brain.extensions = 0;
     await step(() => {}, 1500);
     await step(() => brain.startFocus(), 3500);                                   // focus starts
-    await step(() => brainActions['YouTube opens (nudge after 3 s here)'](), 7000); // YouTube in front: he points at the task
+    await step(() => brainActions['YouTube opens (nudge after 3 s here)'](), 7000); // YouTube in front: "really?" and the app name
     await step(() => brain.choose('bargain'), 9500);                              // "5 more minutes": open palm, looks away, then checks his watch
     await step(() => { watching = null; }, 4000);                                 // YouTube closed: thumbs up
     await step(() => timerDue(), 5000);                                           // 25 minutes later: he waves hi

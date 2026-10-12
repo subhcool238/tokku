@@ -153,6 +153,22 @@
       this.rig(150); this.bounce(0.6); this.mode = 'idle'; return true;
     }
 
+    // The desktop window moves, so he walks on the spot: turn to the side and step. walkDone() turns him back.
+    async walkInPlace(dir, speed = W_SPEED) {
+      const tk = this._begin(); this.sleeping = false; this.mode = 'walking'; this.leanTarget = 0;
+      if (!await this.turnTo(dir * 90, tk)) return false;
+      this.yaw = dir * 90; this.walk = { inPlace: true, dir, v: speed, dist: 0, frame: -1 };
+      return true;
+    }
+    async walkDone() {
+      const dir = this.walk ? this.walk.dir : Math.sign(this.yaw) || 1;
+      const tk = this._begin(); this.mode = 'walking';
+      for (const n of this.c.walk.stop || []) { this.pose(n, 80, dir < 0, true); await this.wait(130); if (!this._alive(tk)) return false; }
+      this.setVisual({ type: 'ring', idx: this.ringIdx(dir * 90) }, 100);
+      if (!await this.turnTo(0, tk)) return false;
+      this.rig(150); this.mode = 'idle'; return true;
+    }
+
     async attention() {   // waves hi and holds it while the bubble with buttons is open
       const tk = this._begin(); this.sleeping = false; this.mode = 'attention'; this.leanTarget = 0;
       if (this.visual.type === 'ring') { if (!await this.turnTo(0, tk)) return false; }
@@ -294,6 +310,11 @@
 
     _walkStep(dt) {
       const w = this.walk, vmax = W_SPEED, acc = 360, dec = 320, W = this.c.walk, frames = W.right, per = W.framePx || 11;
+      if (w.inPlace) {
+        w.dist += w.v * dt; const f = Math.floor(w.dist / per) % frames.length;
+        if (f !== w.frame) { w.frame = f; this.pose(frames[f], W.fadeMs || 0, w.dir < 0, true); }
+        return;
+      }
       const rem = Math.abs(w.tx - this.x);
       const vStop = Math.sqrt(2 * dec * rem);
       w.v = Math.min(w.v + acc * dt, vmax, Math.max(24, vStop));

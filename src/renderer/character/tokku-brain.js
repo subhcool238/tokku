@@ -17,11 +17,11 @@
     extend_ok: ["Okay. Five more minutes.", "Deal. Five more, then a break."],
     extend_end: ["Five minutes are up. Break time.", "That was the extra five. Break now."],
     break_start: ["Enjoy your break. Stretch and drink some water.", "Break time. Look away from the screen."],
-    nudge_gentle: ["{app}? Really? {task} is still waiting.", "Last time 'one episode' turned into three. I was there.", "I'll just sit here until {task} is done. No pressure."],
+    nudge_gentle: ["You're watching {app} again. {task} is still waiting.", "{app}? Really? {task} is still waiting.", "{app} again? I'll stand here until {task} is done."],
     bargain_granted: ["Fine. Five minutes. I'm counting.", "Five minutes, then we're back. Deal?"],
-    bargain_over: ["Time's up. {task}, please.", "I kept my promise. Your turn.", "Five minutes are over. Please turn {app} off."],
-    nudge_firm: ["You are wasting your time on {app} again. Please turn it off.", "Third time. Even my tail is annoyed now.", "{app} will still be here tomorrow. {task} will not wait."],
-    late_night: ["{app} at {time}? Tomorrow-you will not be happy.", "Sleep or work. There's no third option."],
+    bargain_over: ["Five minutes are over. Please turn {app} off.", "Time's up. Close {app}, {task} is waiting.", "I kept my promise about {app}. Your turn."],
+    nudge_firm: ["You are wasting your time on {app} again. Please turn it off.", "{app} again, third time. Even my tail is annoyed now.", "{app} will still be here tomorrow. {task} will not wait."],
+    late_night: ["{app} at {time}? Tomorrow-you will not be happy.", "{app} this late? Sleep or work. There's no third option."],
     back_to_work: ["Good choice. Let's go.", "That's the spirit. Back to it."],
     welcome_back: ["Welcome back. Let's pick up where we left off.", "There you are. {task} missed you."],
     break_over: ["Break's over. Fresh start.", "Back at it. You've got this."],
@@ -41,7 +41,7 @@
       this.ch = character; this.ui = ui;
       this.o = Object.assign({ focusMin: 25, breakMin: 5, extendMin: 5, mealMin: 60, maxExtensions: 1, remindMin: 2,
         lines: DEFAULT_LINES, topTask: () => 'Finish DJX concept PDF', nextTask: () => 'Record demo video',
-        homeX: 1100, nudgeAfterSec: 45, bargainMin: 5, backGraceSec: 60, now: () => new Date() }, opts);
+        homeX: 1100, nudgeAfterSec: 45, bargainMin: 5, backGraceSec: 60, renudgeSec: 60, blockAfterIgnored: 2, now: () => new Date() }, opts);
       this.t = 0;                 // sim ms
       this.state = 'idle'; this.quiet = false; this.timer = null; this.pending = [];
       this.extensions = 0; this.meal = null; this.drags = 0; this.lastLine = {};
@@ -49,7 +49,8 @@
       this.log = [];              // [{t, ev, state}] for tests and the privacy panel
       this.bubble = null;         // {id, actionable}
       this.dist = { app: null, sec: 0, nudged: false, graceUntil: 0 };   // current video or game in front
-      this.nudges = []; this.nudging = false; this.bargaining = false; this.watching = false;    // nudge times (last 30 min), open nudge, granted bargain
+      this.nudges = []; this.nudging = false; this.bargaining = false; this.watching = false;
+      this.ignored = 0; this.blocked = false;                             // ignored nudges in a row; standing in the middle of the screen    // nudge times (last 30 min), open nudge, granted bargain
     }
 
     // ---------- time ----------
@@ -69,7 +70,7 @@
       const time = this.o.now().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       const out = s.replaceAll('{task}', this.o.topTask()).replaceAll('{next}', this.o.nextTask()).replaceAll('{meal}', this.meal || 'meal')
         .replaceAll('{minutes}', vars.minutes || '').replaceAll('{app}', this.dist.app || 'that').replaceAll('{time}', time);
-      return out[0].toUpperCase() + out.slice(1);
+      return (out[0].toUpperCase() + out.slice(1)).replace(/([.?!]\s+)([a-z])/g, (m, a, b) => a + b.toUpperCase());   // a capital after every full stop
     }
     say(key, actions = null, vars) {
       const text = this.line(key, vars);
@@ -85,9 +86,11 @@
     _hideBubble() { if (this.bubble) { this.ui.hide(this.bubble.id); this.bubble = null; } this.ch.talk(false); }
     _actionTimeout(key) {
       this._ev('timeout:' + key); this.bubble = null; this.ch.talk(false);
-      if (this.nudging) {          // no answer to a nudge: he sighs and asks again in two minutes
-        this.nudging = false; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.remindMin * MIN;
-        if (!this.quiet) this.ch.play('sigh'); return;
+      if (this.nudging) {          // no answer to a nudge: he stays, arms crossed, and asks again in a minute
+        this.nudging = false; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.renudgeSec * 1000;
+        this.ignored++;
+        if (this.ignored >= this.o.blockAfterIgnored && !this.blocked) { this.blocked = true; this._ev('block'); }   // the host walks him to the middle
+        if (!this.quiet) this.ch.show('annoyed_mild'); return;
       }
       if (this.state === 'attention') this._setTimer('remind', this.o.remindMin);
     }
@@ -110,12 +113,13 @@
       this._ev('nudge:' + n); this.ch.minimalMotion = false;
       if (n >= 3) { this.bargaining = false; this.ch.show('annoyed_angry'); this.say('nudge_firm', [back]); }                      // third time in 30 min
       else if (this.bargaining) { this.bargaining = false; this.ch.show('away_check_time'); this.say('bargain_over', [back]); }    // the five minutes are over
-      else { this.ch.pointAtTask(); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }, back]); }
+      else { this.ch.show('annoyed_question'); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }, back]); }
     }
     _distractionEnded() {          // the video or game is no longer in front
       const d = this.dist, was = this.nudging || this.bargaining;
       const watched = this.watching;
       d.app = null; d.sec = 0; d.nudged = false; this.nudging = false; this.bargaining = false; this.watching = false;
+      this.ignored = 0; this.blocked = false;
       if (!was && !watched) return;
       this._ev('distraction:ended'); this._hideBubble();
       if (this.quiet) return;
@@ -145,6 +149,7 @@
     }
     choose(action) {
       this._ev('choose:' + action); this._hideBubble();
+      if (this.nudging) this.ignored = 0;                             // any answer counts as not ignoring him
       if (action === 'bargain' && this.nudging) {                     // "5 more minutes" of the video: open palm, then he looks away
         this.nudging = false; this.bargaining = true; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.bargainMin * MIN;
         if (!this.quiet) this.ch.accept().then(ok => ok && this.bargaining && this.ch.show('away_look_away'));
@@ -152,7 +157,11 @@
       }
       if (action === 'backtowork' && this.nudging) {                  // I promise to go back: thumbs up, and a minute to actually do it
         this.nudging = false; this.bargaining = false; this.dist.nudged = false; this.dist.sec = 0; this.dist.graceUntil = this.t + this.o.backGraceSec * 1000;
-        if (!this.quiet) this.ch.play('thanks').then(ok => ok && this.state === 'focusing' && this.ch.setMood('focused'));
+        if (!this.quiet) this.ch.play('thanks').then(ok => {
+          if (!ok) return;
+          if (this.dist.app) this.ch.show('annoyed_mild');            // still open: he waits with arms crossed, not with a smile
+          else if (this.state === 'focusing') this.ch.setMood('focused');
+        });
         this.say('back_to_work'); return true;
       }
       if (action === 'extend' && this.state === 'attention' && this.extensions < this.o.maxExtensions) {

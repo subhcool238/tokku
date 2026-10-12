@@ -54,7 +54,7 @@ function lockDownSession() {
 
 function homePosition() {
   const a = screen.getPrimaryDisplay().workArea;
-  return { x: a.x + a.width - WIN.width - WIN.margin, y: a.y + a.height - WIN.height - WIN.margin };      // bottom right, above the taskbar
+  return { x: a.x + a.width - WIN.width - WIN.margin, y: a.y + a.height - WIN.height };      // bottom right, feet on the top edge of the taskbar
 }
 
 function send(ev) { if (win && !win.isDestroyed()) win.webContents.send('guard:event', ev); }
@@ -95,6 +95,11 @@ function createWindow() {
         probe.push('closed, 1 s later: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
         await wait(3200);
         probe.push('closed, 4 s later: onTop ' + win.isAlwaysOnTop());
+        await js("window.guard.walk('center')");
+        const xs = []; for (let i = 0; i < 8; i++) { await wait(1000); xs.push(win.getBounds().x); }
+        probe.push('x each second: ' + xs.join(' '));
+        const area = screen.getPrimaryDisplay().workArea;
+        probe.push('walk to the middle: window x ' + win.getBounds().x + ', expected ' + Math.round(area.x + (area.width - WIN.width) / 2) + ', pose ' + await js("window.__tokku.ch.visual.name || window.__tokku.ch.visual.type"));
         r.status += ' | PROBE ' + probe.join(' ; ');
         fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + win.isAlwaysOnTop() + ' | focusable ' + win.isFocusable() + ' | sensed ' + JSON.stringify(state.lastReport || null));
       } catch (err) { fs.writeFileSync(shot + '.txt', 'SELF-TEST ERROR: ' + err.message); }
@@ -104,6 +109,22 @@ function createWindow() {
 }
 
 // ---------- renderer requests (the only things it can ask for) ----------
+let walkTimer = null;
+const WALK_PX_PER_SEC = 200;
+ipcMain.on('tokku:walk', (e, where) => {
+  if (!win || win.isDestroyed()) return;
+  clearInterval(walkTimer);
+  const home = homePosition(), a = screen.getPrimaryDisplay().workArea;
+  const targetX = where === 'center' ? Math.round(a.x + (a.width - WIN.width) / 2) : home.x;
+  let x = win.getPosition()[0], last = Date.now();
+  walkTimer = setInterval(() => {
+    if (!win || win.isDestroyed()) { clearInterval(walkTimer); return; }
+    const now = Date.now(), step = WALK_PX_PER_SEC * (now - last) / 1000; last = now;
+    x = Math.abs(targetX - x) <= step ? targetX : x + Math.sign(targetX - x) * step;
+    win.setPosition(Math.round(x), home.y);
+    if (x === targetX) { clearInterval(walkTimer); send({ type: 'arrived', where }); }
+  }, 16);
+});
 ipcMain.on('tokku:hover', (e, on) => { if (win && !win.isDestroyed()) win.setIgnoreMouseEvents(!on, { forward: true }); });
 ipcMain.on('tokku:front', (e, on) => {
   if (!win || win.isDestroyed()) return;
@@ -165,6 +186,7 @@ else {
     sense.start((r) => {
       state.lastReport = r;
       state.sensed = r.reasons; updateQuiet();
+      if (process.env.TOKKU_SHOT) return;                           // the self-test acts out its own activity
       send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons });
       if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes });
     }, { micCamera: () => state.micCamera });

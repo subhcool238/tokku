@@ -5,8 +5,8 @@
   const $ = (id) => document.getElementById(id);
   const canvas = $('stage'), ctx = canvas.getContext('2d', { willReadFrequently: true });
   const bubble = $('bubble'), bubbleText = $('bubble-text'), bubbleActs = $('bubble-acts'), hoverBar = $('hover-bar');
-  const guard = window.guard || { hover() {}, front() {}, onEvent() {} };
-  const HOME_X = canvas.width / 2 + 14, GROUND_Y = canvas.height - 16;
+  const guard = window.guard || { hover() {}, front() {}, walk() {}, onEvent() {} };
+  const HOME_X = canvas.width / 2 + 14, GROUND_Y = canvas.height - 7;
   let status = 'loading';
   window.__tokkuStatus = () => status;
 
@@ -35,7 +35,7 @@
   // Going back behind the windows waits a moment, so the last pose (thumbs up) is still seen.
   let inFront = false, backAt = 0;
   function updateFront(now) {
-    const want = asking || brain.watching;
+    const want = asking || brain.watching || moving || place !== 'home';
     if (want) { backAt = 0; if (!inFront) { inFront = true; guard.front(true); } }
     else if (inFront) { if (!backAt) backAt = now + 2600; else if (now >= backAt) { inFront = false; backAt = 0; guard.front(false); } }
   }
@@ -64,7 +64,7 @@
   const mealNow = () => { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; };
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
   function hoverButtons() {
-    if (brain.quiet) return [];
+    if (brain.quiet || !bubble.hidden || brain.watching || moving) return [];      // never on top of a bubble or during a nudge
     if (brain.state === 'meal') return [button("I'm back", true, () => brain.endMeal())];
     if (brain.state === 'break') return [button('Break over', true, () => brain.breakOver())];
     if (brain.state === 'waking' || brain.state === 'celebrating' || brain.state === 'walking') return [];
@@ -74,7 +74,7 @@
   let hoverKey = '';
   function showHover(on) {
     if (!on) { hoverBar.hidden = true; hoverKey = ''; return; }
-    const key = brain.state + '|' + brain.quiet + '|' + mealNow();
+    const key = brain.state + '|' + brain.quiet + '|' + mealNow() + '|' + bubble.hidden + '|' + brain.watching;
     if (key !== hoverKey) { hoverKey = key; const bs = hoverButtons(); hoverBar.replaceChildren(...bs); hoverBar.hidden = bs.length === 0; }
   }
 
@@ -103,6 +103,7 @@
   // ---------- events from Guard (tray menu now; sensing arrives in Phase 2) ----------
   let pausedUntil = 0, idleSec = 0, debugOn = false, lastSense = '';
   guard.onEvent((ev) => {
+    if (ev.type === 'arrived') { onArrived(ev.where); return; }
     if (ev.type === 'activity') {
       idleSec = ev.idle;
       lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
@@ -120,6 +121,25 @@
     else if (ev.type === 'pause') { pausedUntil = performance.now() + ev.minutes * 60000; ui.hide(); }
   });
 
+  // ---------- ignored for too long: he walks to the middle of the screen and stays until the video is closed ----------
+  let place = 'home', moving = false;
+  const WALK_SPEED = 200;                                         // same as WALK_PX_PER_SEC in src/main/main.js
+  function updatePlace() {
+    if (moving) return;
+    const want = (brain.blocked && !brain.quiet) ? 'center' : 'home';
+    if (want === place) return;
+    if (want === 'home' && ch.mode !== 'idle') return;            // let him finish his thumbs up first
+    moving = true; ui.hide(); showHover(false);
+    ch.walkInPlace(want === 'center' ? -1 : 1, WALK_SPEED);       // home is on the right
+    guard.walk(want);
+  }
+  async function onArrived(where) {
+    place = where;
+    await ch.walkDone();
+    moving = false;
+    if (where === 'center' && brain.dist.app) brain.dist.graceUntil = brain.t;   // he speaks up as soon as he gets there
+  }
+
   // ---------- loop ----------
   brain.startFocus();
   let last = performance.now();
@@ -134,6 +154,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ch.draw(ctx);
     if (over) showHover(true);
+    updatePlace();
     updateFront(now);
     status = 'running, ' + Object.keys(images).length + ' images, brain ' + brain.state + ', picture ' + (ch.visual.name || ch.visual.type);
   }

@@ -87,17 +87,26 @@ const states = b => b.log.map(e => e.ev);
     const watch = async (sec, app = 'YouTube') => { for (let i = 0; i < sec; i++) { b.activity('video', app, 1); await run(1 / 60, 60); } };   // 1 s of sim time per step
     b.startFocus(); await run(0.3);
     await watch(40); check('10a no nudge before 45 s', !b.nudging && !b.log.some(e => e.ev.startsWith('nudge')));
-    await watch(6); check('10b nudge after 45 s: points, names the app, two buttons', b.nudging && ch.visual.name === 'found_point' && said.at(-1).actions.join() === 'bargain,backtowork', said.at(-1).text);
+    await watch(6); check('10b nudge after 45 s: really? pose, names the app, two buttons', b.nudging && ch.visual.name === 'annoyed_question' && /YouTube/.test(said.at(-1).text) && said.at(-1).actions.join() === 'bargain,backtowork', said.at(-1).text);
     b.choose('bargain'); await run(0.5); check('10c five more minutes: open palm, and he stays on watch', ch.visual.name === 'paw_stop' && b.bargaining && b.watching);
     await run(2); check('10d then he looks away', ch.visual.name === 'away_look_away');
     await watch(200); check('10e no nudge during the five minutes', !b.nudging);
     await watch(110); check('10f time is up: checks his watch, only Back to work', b.nudging && ch.visual.name === 'away_check_time' && said.at(-1).actions.join() === 'backtowork', said.at(-1).text);
     b.choose('backtowork'); await run(0.5); check('10g back to work: thumbs up, still on watch until it is closed', ch.visual.name === 'accept_thumbs' && !b.nudging && b.watching);
-    await watch(50); check('10h a minute of grace to really leave', !b.nudging);
+    await watch(50); check('10h a minute of grace to really leave, waiting with arms crossed', !b.nudging && ch.visual.name === 'annoyed_mild');
     await watch(60); check('10i third nudge in 30 min: angry pose, firm line', b.nudging && ch.visual.name === 'annoyed_angry', said.at(-1).text);
     const n = said.length; b.activity('work', null, 3); await run(0.5);
     check('10j video closed: bubble gone, thumbs up, kind line, watch ends', !b.nudging && !b.watching && said.length === n + 1 && ch.visual.name === 'accept_thumbs', said.at(-1).text);
     await run(3); check('10k back on the idle rig, still focusing', ch.visual.type === 'rig' && b.state === 'focusing');
+  }
+  { const { ch, b, said, run } = make();      // ignoring him: he never goes back to the smiling idle while the video is open
+    const watch = async (sec) => { for (let i = 0; i < sec; i++) { b.activity('video', 'Hotstar', 1); await run(1 / 60, 60); } };
+    b.startFocus(); await run(0.3); await watch(50);
+    b._actionTimeout('nudge_gentle'); await watch(5);
+    check('10n ignored nudge: arms crossed, not the idle', !b.nudging && b.watching && ch.visual.name === 'annoyed_mild');
+    await watch(60); check('10o asks again after a minute, naming the app', b.nudging && /Hotstar/.test(said.at(-1).text) && !b.blocked, said.at(-1).text);
+    b._actionTimeout('nudge_gentle'); check('10p ignored twice: he goes to the middle of the screen', b.blocked === true);
+    b.activity('work', null, 3); check('10q video closed: he may go home again', b.blocked === false && b.ignored === 0);
   }
   { const { b, said, run } = make();
     const watch = async (sec) => { for (let i = 0; i < sec; i++) { b.activity('video', 'Netflix', 1); await run(1 / 60, 60); } };

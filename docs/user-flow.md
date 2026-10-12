@@ -24,13 +24,14 @@ Tokku lives in the top right corner of the desktop, behind your windows. There i
 
 | Step | What you see | Buttons |
 |---|---|---|
-| 45 seconds on YouTube, Netflix, Hotstar, Prime Video, Steam or Epic Games | Comes forward, points, names the app and your task | 5 more minutes, Back to work |
+| 45 seconds on YouTube, Netflix, Hotstar, Prime Video, Steam or Epic Games | Comes forward with a "really?" pose, names the app and your task | 5 more minutes, Back to work |
 | 5 more minutes | Open palm (five), then he looks away while you watch | none |
 | The 5 minutes are over and it is still in front | Checks his watch: "Please turn it off" | Back to work |
 | Back to work | Thumbs up. You get one minute to really close it | none |
 | Third nudge within 30 minutes | Angry pose, firmest line | Back to work |
 | You close the video yourself at any point | Bubble goes away, thumbs up, "Good choice" | none |
-| You ignore his question for a minute | He sighs and asks again in 2 minutes | as before |
+| You ignore his question for a minute | He stays with arms crossed and asks again after 1 minute | as before |
+| You ignore him twice in a row | He walks to the middle of the screen and stands in front of the video until you close it, then walks home | as before |
 | After 11:30 pm | Late night lines instead of the gentle ones | as before |
 
 No nudge during a meal, in Quiet mode, or while you are away from the keyboard.
@@ -39,7 +40,7 @@ No nudge during a meal, in Quiet mode, or while you are away from the keyboard.
 
 | When | Buttons |
 |---|---|
-| Working | Take a break, and Breakfast, Lunch or Dinner (chosen by the time of day) |
+| Working (buttons appear above his head) | Take a break, and Breakfast, Lunch or Dinner (chosen by the time of day) |
 | On a break | Break over |
 | Meal (asleep) | I'm back. Clicking him also wakes him |
 
