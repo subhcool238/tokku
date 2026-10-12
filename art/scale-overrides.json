@@ -1,57 +1,103 @@
 {
- "_about": "Manual corrections applied last by tools/cut_sprites.py. Keys per frame: scale, anchorX, feetY. Set by eye on the contact sheet (transparent sheets, 12 Oct).",
- "walk_1": {
-  "scale": 0.86
- },
- "walk_2": {
-  "scale": 0.86
- },
- "walk_3": {
-  "scale": 0.86
- },
- "walk_4": {
-  "scale": 0.86
- },
+ "_about": "Manual corrections applied last by tools/cut_sprites.py. Keys per frame: scale, anchorX, feetY. Set by eye on the contact sheet.",
  "walk_5": {
-  "scale": 0.93
+  "scale": 0.9,
+  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
  },
  "walk_6": {
-  "scale": 0.93
+  "scale": 0.9,
+  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
  },
  "walk_7": {
-  "scale": 0.93
+  "scale": 0.9,
+  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
  },
  "walk_8": {
-  "scale": 0.93
+  "scale": 0.9,
+  "why": "S02 is drawn with a smaller head for its body than S01; halfway between head match and height match"
  },
  "walk_start_lean": {
-  "scale": 0.86
+  "scale": 0.86,
+  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
  },
  "walk_start_step": {
-  "scale": 0.86
+  "scale": 0.86,
+  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
  },
  "walk_stop_slow": {
-  "scale": 0.86
+  "scale": 0.86,
+  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
  },
  "side_idle": {
-  "scale": 0.86
+  "scale": 0.86,
+  "why": "S03 is drawn with a smaller head for its body than S01; halfway"
  },
- "stretch_up": {
-  "scale": 0.84
+ "awake_front": {
+  "scale": 0.86,
+  "why": "small head on a tall body; kept near the turn frames"
  },
- "annoyed_mild": {
-  "scale": 0.8
- },
- "annoyed_question": {
-  "scale": 0.8
- },
- "annoyed_angry": {
-  "scale": 0.84
+ "done_checkmark": {
+  "scale": 0.73,
+  "why": "the check mark hides the measurement; same as its sheet"
  },
  "quiet_back_sit": {
-  "scale": 0.78
+  "scale": 0.8,
+  "why": "back view, no face to measure"
  },
  "quiet_rest_curl": {
-  "scale": 0.66
+  "scale": 0.66,
+  "why": "curled up; matched by eye to the sleep curl"
+ },
+ "annoyed_angry": {
+  "scale": 0.78,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "drag_land": {
+  "scale": 0.76,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "lean_wave": {
+  "scale": 0.74,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "drowsy_sit": {
+  "scale": 0.74,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "wake_sit_rub": {
+  "scale": 0.73,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "wake_yawn_lying": {
+  "scale": 0.73,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "break_lie_rest": {
+  "scale": 0.74,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "break_stretch": {
+  "scale": 0.76,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "sulk": {
+  "scale": 0.75,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "done_cheer": {
+  "scale": 0.75,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "away_check_time": {
+  "scale": 0.77,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "paw_stop": {
+  "scale": 0.76,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "yawn_sit": {
+  "scale": 0.75,
+  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
  }
 }

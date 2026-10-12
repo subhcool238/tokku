@@ -101,12 +101,11 @@
   "S05": {
    "file": "S05_turn_B.png",
    "layout": "4 equal columns, 1 row",
-   "note": "Transparent re-draw (12 Oct): frame 1 is now wrong (face and tail point the same way). Only frame 2 is a usable back three-quarter view, used for both 120 and 150 degrees.",
+   "note": "Transparent re-draw, frame 1 fixed on 12 Oct. Frame 4 is a correct left-facing view but is not used: the left views are mirrored from the right ones so both sides match.",
    "frames": [
     {
-     "name": "turn_120_bad",
-     "use": false,
-     "reason": "face and tail point the same way; turn_120 is a copy of turn_150"
+     "name": "turn_120",
+     "use": true
     },
     {
      "name": "turn_150",
@@ -117,9 +116,9 @@
      "use": true
     },
     {
-     "name": "turn_210_bad",
+     "name": "turn_240_drawn",
      "use": false,
-     "reason": "face and tail point the same way; replaced by derived turn_210"
+     "reason": "left views are made by mirroring, so both sides match exactly"
     }
    ]
   },
@@ -497,10 +496,6 @@
   }
  },
  "derived": [
-  {
-   "name": "turn_120",
-   "from": "turn_150"
-  },
   {
    "name": "turn_210",
    "from": "turn_150",

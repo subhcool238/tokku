@@ -44,6 +44,10 @@ CALIB_SHEETS = ("S01", "S02", "S03")  # clean side views: used to tie the eye pa
 FREE_SCALE = {"sleep_curl", "wake_lying", "inspect_low", "break_lie_rest", "quiet_rest_curl", "drag_land"}
 #                                      lying poses are drawn at their own size, so they are not held to the sheet median
 UNIFORM_GROUPS = (("S01",), ("S02",), ("S03",), ("S04", "S05"))
+CIRCLE_BAD = {"sleep_curl", "sleep_breathe_in", "sleep_breathe_out", "sleep_ear_twitch", "sleep_tail_curl",
+              "wake_ear_lift", "wake_peek", "quiet_rest_curl", "joy_jump", "done_checkmark",
+              "turn_120", "turn_150", "turn_180", "quiet_back_sit"}
+#                                      head merged with the body or a prop, or a back view: sized from the eye patch instead
 #                                      walk frames share one size, turn frames share one size (no popping inside a cycle)
 SCALE_SPREAD = 0.05                  # a frame may differ this much from its sheet's median scale
 
@@ -392,6 +396,24 @@ def patch_size(rgb, a):
     return float(np.sqrt(area)) if area > 1500 else None
 
 
+def head_radius(rgb, a):
+    """Radius of the biggest circle that fits inside the head, centred on the face.
+
+    This follows what the eye reads as head size, in front, three-quarter and side views alike.
+    It fails when the head is merged with something big (curled up body, arms over the head,
+    a held prop) and on back views: those frames are listed in CIRCLE_BAD.
+    """
+    solid = (a > 0.5).astype(np.uint8)
+    dt = cv2.distanceTransform(solid, cv2.DIST_L2, 5)
+    _, _, v = hsv(rgb)
+    dark = cv2.morphologyEx(((a > 0.8) & (v < 0.5)).astype(np.uint8), cv2.MORPH_OPEN, disk(3))
+    n, lab, st, _ = cv2.connectedComponentsWithStats(dark, connectivity=8)
+    big = [i for i in range(1, n) if st[i, cv2.CC_STAT_AREA] > 1500]
+    if not big:
+        return None
+    return float(dt[dilate(np.isin(lab, big), 12)].max())
+
+
 def eye_distance(rgb, a):
     """Distance between the two dark eye patches, for front views only (else None)."""
     _, s, v = hsv(rgb)
@@ -684,51 +706,48 @@ def main():
             f["anchorX"] = anchor_x(f["a"], n)
             f["head"] = head_height(f["a"])
             f["patch"] = patch_size(f["rgb"], f["a"])
+            f["circle"] = None if n in CIRCLE_BAD else head_radius(f["rgb"], f["a"])
 
     # ---- head size -> scale
-    def head_scale(n):
-        f = frames[n]
-        return ref["head_h"] / (f["head"][1] - f["head"][0]) if f["head"] else None
+    target = head_radius(idle[..., :3], ia)      # every head is scaled to the head of the old idle
+    print(f"  head radius of the old idle: {target:.1f} px")
+
+    def circle_scale(n):
+        return target / frames[n]["circle"] if frames[n]["circle"] else None
 
     def patch_scale(n):
         return ref["patch"] / frames[n]["patch"] if frames[n]["patch"] else None
 
-    # The old idle has bigger eye patches for its head than art v3, so patch matching alone makes
-    # every frame too small. Side views give a clean head height, so they set the correction.
-    ratios = [head_scale(n) / patch_scale(n) for sid in CALIB_SHEETS for n in by_sheet[sid] if head_scale(n) and patch_scale(n)]
-    calib = float(np.median(ratios))
-    print(f"  eye patch to head height correction: x{calib:.3f}")
+    # frames where the circle cannot be used fall back to the eye patch, tied to the circle measure
+    # through all the frames that have both
+    both = [circle_scale(n) / patch_scale(n) for n in frames if circle_scale(n) and patch_scale(n)]
+    calib = float(np.median(both))
+    print(f"  eye patch to head circle correction: x{calib:.3f}")
 
     def own_scale(n, sid):
-        if sid in HEAD_SHEETS:
-            return head_scale(n)
-        v = patch_scale(n)
-        return v * calib if v else None
+        v = circle_scale(n)
+        if v is None and patch_scale(n) and sid not in HEAD_SHEETS:
+            v = patch_scale(n) * calib
+        return v
 
     sheet_scale = {}
     for sid, names in by_sheet.items():
-        vals = [v for v in (own_scale(n, sid) for n in names if n not in FREE_SCALE) if v and 0.6 < v < 1.6]
+        vals = [v for v in (circle_scale(n) for n in names) if v and 0.5 < v < 1.6]
         if vals:
             sheet_scale[sid] = float(np.median(vals))
     for sid, names in by_sheet.items():
         base = sheet_scale.get(sid) or sheet_scale.get(SCALE_FALLBACK.get(sid, ""))
-        if base is None:
-            base = float(np.median(list(sheet_scale.values())))
-            for n in names:
-                flag(n, "no head could be measured on this sheet, size is a guess")
         for n in names:
             own = own_scale(n, sid)
-            if own is None or abs(own / base - 1) > 0.25:
-                frames[n]["scale"] = base
-            elif n in FREE_SCALE or sid in SCALE_FALLBACK:
-                frames[n]["scale"] = own
-            else:
-                frames[n]["scale"] = float(np.clip(own, base * (1 - SCALE_SPREAD), base * (1 + SCALE_SPREAD)))
-        print(f"  size {sid}: sheet scale {base:.3f}  frames " + " ".join(f"{frames[n]['scale']:.2f}" for n in names)
+            if own is None:
+                own = base if base else float(np.median(list(sheet_scale.values())))
+                flag(n, "head could not be measured, size taken from its sheet")
+            frames[n]["scale"] = own
+        print(f"  size {sid}: frames " + " ".join(f"{frames[n]['scale']:.2f}" for n in names)
               + "  air " + " ".join(str(frames[n]["air"]) for n in names))
 
     for group in UNIFORM_GROUPS:
-        vals = [v for sid in group for n in by_sheet[sid] for v in [own_scale(n, sid)] if v and 0.6 < v < 1.6]
+        vals = [v for sid in group for n in by_sheet[sid] for v in [circle_scale(n)] if v and 0.5 < v < 1.6]
         g = float(np.median(vals))
         for sid in group:
             for n in by_sheet[sid]:
@@ -798,8 +817,8 @@ def main():
     char["walk"] = {"right": WALK8, "start": ["walk_start_lean", "walk_start_step"], "stop": ["walk_stop_slow", "side_idle"],
                     "strideDisplayPx": 34, "note": "8 frame cycle facing right, advanced by distance. Mirror for left."}
     char["sequences"] = SEQUENCES
-    char["scaleNote"] = ("Per-pose \"scale\" makes the head the same size as the idle rig. Measured by tools/cut_sprites.py "
-                         "from the top of the head to the neck. Manual corrections: art/scale-overrides.json.")
+    char["scaleNote"] = ("Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest "
+                         "circle that fits in the head. Manual corrections: art/scale-overrides.json.")
     char["legacyNote"] = "Poses marked legacy are the old art in assets/_old. The engine uses them until Phase 1B."
     CHAR_JSON.write_text(json.dumps(char, indent=1) + "\n", encoding="utf-8")
 

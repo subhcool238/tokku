@@ -1,6 +1,16 @@
 {
  "frames": 79,
- "unsure": {},
+ "unsure": {
+  "turn_120": [
+   "head could not be measured, size taken from its sheet"
+  ],
+  "turn_150": [
+   "head could not be measured, size taken from its sheet"
+  ],
+  "turn_180": [
+   "head could not be measured, size taken from its sheet"
+  ]
+ },
  "log": [
   "S07: dropped a separate shape of 683 px (drawn mark or speck)",
   "S07: dropped a separate shape of 497 px (drawn mark or speck)"
