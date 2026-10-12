@@ -95,6 +95,13 @@
     add('sequence-buttons', name, () => { ui.hide(); ch.play(name); });
   }
 
+  // ---- clicking him while he sleeps wakes him up (same as on the desktop)
+  canvas.addEventListener('mousedown', (e) => {
+    const r = canvas.getBoundingClientRect(), k = canvas.width / r.width;
+    const x = (e.clientX - r.left) * k, y = (e.clientY - r.top) * k;
+    if (brain.state === 'meal' && Math.abs(x - ch.x) < 120 && y > GROUND_Y - 240 && y < GROUND_Y + 10) brain.endMeal();
+  });
+
   // ---- tabs
   const tabs = [...document.querySelectorAll('[role=tab]')];
   tabs.forEach(t => t.onclick = () => tabs.forEach(o => {

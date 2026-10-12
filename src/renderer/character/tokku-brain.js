@@ -49,7 +49,7 @@
       this.log = [];              // [{t, ev, state}] for tests and the privacy panel
       this.bubble = null;         // {id, actionable}
       this.dist = { app: null, sec: 0, nudged: false, graceUntil: 0 };   // current video or game in front
-      this.nudges = []; this.nudging = false; this.bargaining = false;    // nudge times (last 30 min), open nudge, granted bargain
+      this.nudges = []; this.nudging = false; this.bargaining = false; this.watching = false;    // nudge times (last 30 min), open nudge, granted bargain
     }
 
     // ---------- time ----------
@@ -103,7 +103,7 @@
       this._nudge();
     }
     _nudge() {
-      const d = this.dist; d.nudged = true; this.nudging = true;
+      const d = this.dist; d.nudged = true; this.nudging = true; this.watching = true;   // stays in front until the video is closed
       this.nudges = this.nudges.filter(t => this.t - t < 30 * MIN); this.nudges.push(this.t);
       const n = this.nudges.length, back = { id: 'backtowork', label: 'Back to work' };
       const now = this.o.now(), mins = now.getHours() * 60 + now.getMinutes(), late = mins >= 23 * 60 + 30 || mins < 5 * 60;
@@ -114,8 +114,9 @@
     }
     _distractionEnded() {          // the video or game is no longer in front
       const d = this.dist, was = this.nudging || this.bargaining;
-      d.app = null; d.sec = 0; d.nudged = false; this.nudging = false; this.bargaining = false;
-      if (!was) return;
+      const watched = this.watching;
+      d.app = null; d.sec = 0; d.nudged = false; this.nudging = false; this.bargaining = false; this.watching = false;
+      if (!was && !watched) return;
       this._ev('distraction:ended'); this._hideBubble();
       if (this.quiet) return;
       this.say('back_to_work'); this.ch.play('thanks').then(ok => ok && this.state === 'focusing' && this.ch.setMood('focused'));

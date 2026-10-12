@@ -574,7 +574,7 @@ SEQUENCES = {
     "drag_end": seq(("drag_land", 260), ("drag_sit", 900)),
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),
     "quiet_off": seq(("quiet_back_sit", 250), after="turn:0", end="rig"),
-    "welcome_back": seq(("lean_wave", 1700), end="rig"),        # leans in and waves
+    "welcome_back": seq(("wave_hello", 1700), end="rig"),       # a normal wave
     "surprise": seq(("surprise_start", 250), ("surprise_strong", 1000), end="rig"),      # no smiling frame at the end
     "point_at_task": seq(("found_point", 0), hold="found_point"),
     "idle_inspect": seq(("inspect_low", 1600), end="rig"),

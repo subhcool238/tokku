@@ -229,7 +229,8 @@
     },
     {
      "name": "lean_wave",
-     "use": true
+     "use": false,
+     "reason": "looked odd in motion (review, 12 Oct); wave_hello is used instead"
     },
     {
      "name": "wave_hello",

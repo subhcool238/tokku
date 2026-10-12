@@ -399,7 +399,7 @@ window.TOKKU_CHARACTER = {
    "h": 328,
    "anchorX": 383,
    "feetY": 320,
-   "scale": 0.707
+   "scale": 0.706
   },
   "wake_yawn_lying": {
    "file": "v3/wake_yawn_lying.png",
@@ -424,14 +424,6 @@ window.TOKKU_CHARACTER = {
    "anchorX": 253,
    "feetY": 671,
    "scale": 0.783
-  },
-  "lean_wave": {
-   "file": "v3/lean_wave.png",
-   "w": 505,
-   "h": 644,
-   "anchorX": 401,
-   "feetY": 636,
-   "scale": 0.74
   },
   "wave_hello": {
    "file": "v3/wave_hello.png",
@@ -1317,7 +1309,7 @@ window.TOKKU_CHARACTER = {
   "welcome_back": {
    "frames": [
     {
-     "pose": "lean_wave",
+     "pose": "wave_hello",
      "ms": 1700
     }
    ],

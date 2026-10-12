@@ -30,7 +30,15 @@
   ch.x = HOME_X; ch.groundY = GROUND_Y;
 
   // ---------- speech bubble (the brain's "ui") ----------
-  let bubbleId = 0, hideTimer = null, typeTimer = null;
+  let bubbleId = 0, hideTimer = null, typeTimer = null, asking = false;
+  // He is in front while a question is open, and from his first nudge until the video or game is closed.
+  // Going back behind the windows waits a moment, so the last pose (thumbs up) is still seen.
+  let inFront = false, backAt = 0;
+  function updateFront(now) {
+    const want = asking || brain.watching;
+    if (want) { backAt = 0; if (!inFront) { inFront = true; guard.front(true); } }
+    else if (inFront) { if (!backAt) backAt = now + 2600; else if (now >= backAt) { inFront = false; backAt = 0; guard.front(false); } }
+  }
   function button(label, primary, onClick) {
     const b = document.createElement('button'); b.textContent = label; if (primary) b.className = 'primary';
     b.addEventListener('click', onClick); return b;
@@ -43,11 +51,11 @@
       bubbleText.textContent = ''; bubble.hidden = false;
       let n = 0;                                                    // type the line out while his mouth moves
       typeTimer = setInterval(() => { n += 2; bubbleText.textContent = text.slice(0, n); if (n >= text.length) { clearInterval(typeTimer); o.onDone && o.onDone(); } }, 34);
-      if (o.actionable) guard.front(true);                          // a question for you: come to the front
-      hideTimer = setTimeout(() => { if (id !== bubbleId) return; bubble.hidden = true; guard.front(false); o.onTimeout && o.onTimeout(); }, o.timeoutMs);
+      asking = !!o.actionable;                                      // a question for you: come to the front
+      hideTimer = setTimeout(() => { if (id !== bubbleId) return; bubble.hidden = true; asking = false; o.onTimeout && o.onTimeout(); }, o.timeoutMs);
       return id;
     },
-    hide() { clearTimeout(hideTimer); clearInterval(typeTimer); bubble.hidden = true; guard.front(false); },
+    hide() { clearTimeout(hideTimer); clearInterval(typeTimer); bubble.hidden = true; asking = false; },
     onTimer() {},
   };
   const brain = new TokkuBrain(ch, ui, { homeX: HOME_X, topTask: () => 'your work', nextTask: () => 'the next task' });   // real Notion tasks arrive in Phase 5
@@ -86,7 +94,7 @@
     setOver(!!(el && el.closest('.hit')) || onCharacter(e.clientX, e.clientY));
   });
   document.addEventListener('mouseleave', () => setOver(false));
-  canvas.addEventListener('click', (e) => {                       // clicking him while he sleeps wakes him up
+  window.addEventListener('mousedown', (e) => {                   // clicking him while he sleeps wakes him up
     if (brain.state === 'meal' && onCharacter(e.clientX, e.clientY)) brain.endMeal();
   });
 
@@ -118,6 +126,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ch.draw(ctx);
     if (over) showHover(true);
+    updateFront(now);
     status = 'running, ' + Object.keys(images).length + ' images, brain ' + brain.state + ', picture ' + (ch.visual.name || ch.visual.type);
   }
   function loop(now) { frame(now); requestAnimationFrame(loop); }

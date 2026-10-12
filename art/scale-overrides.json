@@ -20,10 +20,6 @@
   "scale": 0.76,
   "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
  },
- "lean_wave": {
-  "scale": 0.74,
-  "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
- },
  "drowsy_sit": {
   "scale": 0.74,
   "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"

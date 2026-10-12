@@ -88,15 +88,15 @@ const states = b => b.log.map(e => e.ev);
     b.startFocus(); await run(0.3);
     await watch(40); check('10a no nudge before 45 s', !b.nudging && !b.log.some(e => e.ev.startsWith('nudge')));
     await watch(6); check('10b nudge after 45 s: points, names the app, two buttons', b.nudging && ch.visual.name === 'found_point' && said.at(-1).actions.join() === 'bargain,backtowork', said.at(-1).text);
-    b.choose('bargain'); await run(0.5); check('10c five more minutes: open palm', ch.visual.name === 'paw_stop' && b.bargaining);
+    b.choose('bargain'); await run(0.5); check('10c five more minutes: open palm, and he stays on watch', ch.visual.name === 'paw_stop' && b.bargaining && b.watching);
     await run(2); check('10d then he looks away', ch.visual.name === 'away_look_away');
     await watch(200); check('10e no nudge during the five minutes', !b.nudging);
     await watch(110); check('10f time is up: checks his watch, only Back to work', b.nudging && ch.visual.name === 'away_check_time' && said.at(-1).actions.join() === 'backtowork', said.at(-1).text);
-    b.choose('backtowork'); await run(0.5); check('10g back to work: thumbs up', ch.visual.name === 'accept_thumbs' && !b.nudging);
+    b.choose('backtowork'); await run(0.5); check('10g back to work: thumbs up, still on watch until it is closed', ch.visual.name === 'accept_thumbs' && !b.nudging && b.watching);
     await watch(50); check('10h a minute of grace to really leave', !b.nudging);
     await watch(60); check('10i third nudge in 30 min: angry pose, firm line', b.nudging && ch.visual.name === 'annoyed_angry', said.at(-1).text);
     const n = said.length; b.activity('work', null, 3); await run(0.5);
-    check('10j video closed: bubble gone, thumbs up, kind line', !b.nudging && said.length === n + 1 && ch.visual.name === 'accept_thumbs', said.at(-1).text);
+    check('10j video closed: bubble gone, thumbs up, kind line, watch ends', !b.nudging && !b.watching && said.length === n + 1 && ch.visual.name === 'accept_thumbs', said.at(-1).text);
     await run(3); check('10k back on the idle rig, still focusing', ch.visual.type === 'rig' && b.state === 'focusing');
   }
   { const { b, said, run } = make();
