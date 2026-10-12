@@ -1040,8 +1040,8 @@ window.TOKKU_CHARACTER = {
   "stop": [
    "walkd_stand"
   ],
-  "framePx": 15,
-  "fadeMs": 45,
+  "framePx": 22,
+  "fadeMs": 60,
   "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. The frame advances every framePx screen pixels, with a short blend. Mirror for left."
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
@@ -1169,15 +1169,15 @@ window.TOKKU_CHARACTER = {
    "frames": [
     {
      "pose": "sleepy_stand",
-     "ms": 800
+     "ms": 500
     },
     {
      "pose": "yawn_sit",
-     "ms": 1100
+     "ms": 750
     },
     {
      "pose": "drowsy_sit",
-     "ms": 1100
+     "ms": 650
     }
    ]
   },

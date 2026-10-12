@@ -561,7 +561,7 @@ SEQUENCES = {
     "rest": seq(("break_stretch", 900), ("break_yawn", 1100), ("break_sit_relaxed", 60000), ("break_lie_rest", 0),
                 hold="break_lie_rest"),
     "stretch_up": seq(("break_stretch", 1000), end="rig"),
-    "sleep_in": seq(("sleepy_stand", 800), ("yawn_sit", 1100), ("drowsy_sit", 1100)),   # then the engine shows sleep_curl and loops
+    "sleep_in": seq(("sleepy_stand", 500), ("yawn_sit", 750), ("drowsy_sit", 650)),   # then the engine shows sleep_curl and loops
     "wake": seq(("wake_yawn_lying", 900), ("wake_sit_rub", 900), ("stretch_up", 900), end="rig"),   # no second curled up pose
     "celebrate": seq(("joy_excited", 450), ("joy_jump", 450), ("done_checkmark", 1200), ("done_proud", 900),
                      end="rig", hop={"at": "joy_jump", "heightPx": 14}),
@@ -846,7 +846,7 @@ def main():
                               "feetY": poses[n]["feetY"], "scale": poses[n]["scale"]}
                              for n, y in sorted(YAW.items(), key=lambda kv: kv[1])]}
     char["walk"] = {"right": ["walkd_2", "walkd_3", "walkd_5", "walkd_1"], "start": ["walkd_stand"], "stop": ["walkd_stand"],
-                    "framePx": 15, "fadeMs": 45,
+                    "framePx": 22, "fadeMs": 60,
                     "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. "
                             "The frame advances every framePx screen pixels, with a short blend. Mirror for left."}
     char["sequences"] = SEQUENCES

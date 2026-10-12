@@ -17,6 +17,7 @@
     extend_ok: ["Okay. Five more minutes.", "Deal. Five more, then a break."],
     extend_end: ["Five minutes are up. Break time.", "That was the extra five. Break now."],
     break_start: ["Enjoy your break. Stretch and drink some water.", "Break time. Look away from the screen."],
+    break_over: ["Break's over. Fresh start.", "Back at it. You've got this."],
     break_end: ["Break's over. Back to '{task}'?", "Ready? '{task}' is waiting."],
     meal_start: ["Enjoy your {meal}. See you in an hour.", "Go eat. I'll nap till you're back."],
     meal_end: ["Welcome back. Ready to focus?", "Hope the {meal} was good. Shall we start?"],
@@ -105,6 +106,21 @@
       }
       if (action === 'resume') return this.startFocus();
       return false;
+    }
+    // Hover button "Take a break": a break I start myself, at any time while working.
+    startBreak() {
+      if (this.state === 'meal' || this.state === 'break' || this.state === 'waking') return false;
+      this._ev('user:break'); this._hideBubble();
+      this.state = 'break'; this._setTimer('break', this.o.breakMin); this.ch.minimalMotion = false;
+      if (!this.quiet) this.ch.rest(); this.say('break_start'); return true;
+    }
+    // Hover button "Break over": I am back before the 5 minutes ended. Straight back to focus, no question asked.
+    breakOver() {
+      if (this.state !== 'break') return false;
+      this._ev('user:break_over'); this._hideBubble();
+      this.state = 'focusing'; this.extensions = 0; this._setTimer('focus', this.o.focusMin); this.ch.minimalMotion = true;
+      if (!this.quiet) this.ch.stretchUp().then(ok => ok && this.state === 'focusing' && this.ch.setMood('focused'));
+      this.say('break_over'); return true;
     }
     _due(kind) {
       this._ev('due:' + kind);

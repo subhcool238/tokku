@@ -71,5 +71,16 @@ const states = b => b.log.map(e => e.ev);
     check('8 task done: celebrate pose', ['joy_excited', 'joy_jump', 'done_checkmark'].includes(ch.visual.name));
     await run(4); check('8 back to focusing after celebration', b.state === 'focusing');
   }
+  // 9. hover buttons: a break I start and end myself
+  { const { ch, b, said, run } = make();
+    b.startFocus(); await run(0.5);
+    check('9a take a break while working: break state and timer', b.startBreak() === true && b.state === 'break' && b.timer.kind === 'break');
+    await run(1); check('9b break pose', /^break_/.test(ch.visual.name));
+    check('9c a second break request is refused', b.startBreak() === false);
+    check('9d break over: back to focus with a fresh 25 min timer', b.breakOver() === true && b.state === 'focusing' && b.timer.kind === 'focus' && Math.round(b.timer.endsAt - b.t) === 25 * 60000, said.at(-1).text);
+    await run(3); check('9e stretches, then idle rig', ch.visual.type === 'rig' && b.state === 'focusing');
+    check('9f break over does nothing when not on a break', b.breakOver() === false);
+    b.startMeal('lunch'); check('9g no break during a meal', b.startBreak() === false && b.state === 'meal');
+  }
   console.log(results.join('\n')); console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 })();

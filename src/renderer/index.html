@@ -6,9 +6,14 @@
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <canvas id="stage" width="360" height="400"></canvas>
-  <p id="status">Loading Tokku...</p>
+  <div id="bubble" class="glass hit" hidden>
+    <div id="bubble-text"></div>
+    <div id="bubble-acts"></div>
+  </div>
+  <canvas id="stage" width="340" height="300"></canvas>
+  <div id="hover-bar" class="hit" hidden></div>
   <script src="character/tokku-character.js"></script>
+  <script src="character/tokku-brain.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
