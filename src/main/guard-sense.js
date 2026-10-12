@@ -7,8 +7,14 @@ const { powerMonitor, screen } = require('electron');
 const { execFile } = require('node:child_process');
 
 const POLL_MS = 3000;
-const VIDEO = [['youtube', 'YouTube'], ['netflix', 'Netflix'], ['jiohotstar', 'Hotstar'], ['hotstar', 'Hotstar'], ['prime video', 'Prime Video'], ['primevideo', 'Prime Video']];
-const GAME = [['steam', 'Steam'], ['epic games', 'Epic Games']];
+// Matched against the window title and the app name, lower case. The first match wins.
+const VIDEO = [['youtube', 'YouTube'], ['netflix', 'Netflix'], ['jiohotstar', 'Hotstar'], ['hotstar', 'Hotstar'], ['disney+', 'Disney+'],
+  ['prime video', 'Prime Video'], ['primevideo', 'Prime Video'], ['amazon video', 'Prime Video'], ['sonyliv', 'SonyLIV'], ['sony liv', 'SonyLIV'],
+  ['zee5', 'ZEE5'], ['jiocinema', 'JioCinema'], ['mx player', 'MX Player'], ['apple tv', 'Apple TV'], ['crunchyroll', 'Crunchyroll'],
+  ['twitch', 'Twitch'], ['hulu', 'Hulu'], ['max |', 'Max'], ['instagram', 'Instagram'], ['reels', 'Reels'], ['tiktok', 'TikTok']];
+const GAME = [['steam', 'Steam'], ['epic games', 'Epic Games'], ['riot client', 'Riot Games'], ['valorant', 'Valorant'], ['league of legends', 'League of Legends'],
+  ['battle.net', 'Battle.net'], ['xbox', 'Xbox'], ['ea app', 'EA app'], ['ubisoft connect', 'Ubisoft Connect'], ['gog galaxy', 'GOG Galaxy'],
+  ['minecraft', 'Minecraft'], ['roblox', 'Roblox'], ['genshin', 'Genshin Impact'], ['counter-strike', 'Counter-Strike'], ['fortnite', 'Fortnite']];
 const MEETING = ['zoom meeting', 'meet -', 'microsoft teams', 'webex', 'skype', 'discord'];
 // never counted as a full screen work app: the desktop itself, and screenshot overlays (Win + Shift + S)
 const NOT_FULLSCREEN_APP = /explorer|search|shell ?experience|lock ?app|snip|screen ?clipping|screen ?sketch|screenshot|sharex|lightshot|greenshot/i;
@@ -16,7 +22,7 @@ const FULLSCREEN_POLLS = 3;      // full screen must last about 9 seconds before
 
 function classify(title, owner) {
   const t = (title || '').toLowerCase(), o = (owner || '').toLowerCase();
-  for (const [key, label] of VIDEO) if (t.includes(key)) return { category: 'video', app: label };
+  for (const [key, label] of VIDEO) if (t.includes(key) || o.includes(key)) return { category: 'video', app: label };
   for (const [key, label] of GAME) if (t.includes(key) || o.includes(key)) return { category: 'game', app: label };
   if (MEETING.some(k => t.includes(k)) && !(o.includes('discord') && !/voice|call/.test(t))) return { category: 'meeting', app: null };
   return { category: t ? 'work' : 'other', app: null };

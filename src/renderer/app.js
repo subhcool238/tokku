@@ -5,8 +5,8 @@
   const $ = (id) => document.getElementById(id);
   const canvas = $('stage'), ctx = canvas.getContext('2d', { willReadFrequently: true });
   const bubble = $('bubble'), bubbleText = $('bubble-text'), bubbleActs = $('bubble-acts'), hoverBar = $('hover-bar');
-  const guard = window.guard || { hover() {}, front() {}, walk() {}, onEvent() {} };
-  const HOME_X = canvas.width / 2 + 14, GROUND_Y = canvas.height - 7;
+  const guard = window.guard || { hover() {}, front() {}, walk() {}, dragStart() {}, drag() {}, drop() {}, onEvent() {} };
+  const HOME_X = 215, GROUND_Y = canvas.height - 7;               // 215 is also the centre of the bubble and buttons in app.css
   let status = 'loading';
   window.__tokkuStatus = () => status;
 
@@ -35,7 +35,7 @@
   // Going back behind the windows waits a moment, so the last pose (thumbs up) is still seen.
   let inFront = false, backAt = 0;
   function updateFront(now) {
-    const want = asking || brain.watching || moving || place !== 'home';
+    const want = asking || brain.watching || moving || dragging || place !== 'home';
     if (want) { backAt = 0; if (!inFront) { inFront = true; guard.front(true); } }
     else if (inFront) { if (!backAt) backAt = now + 2600; else if (now >= backAt) { inFront = false; backAt = 0; guard.front(false); } }
   }
@@ -64,7 +64,7 @@
   const mealNow = () => { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; };
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
   function hoverButtons() {
-    if (brain.quiet || !bubble.hidden || brain.watching || moving) return [];      // never on top of a bubble or during a nudge
+    if (brain.quiet || !bubble.hidden || brain.watching || moving || dragging) return [];      // never on top of a bubble or during a nudge
     if (brain.state === 'meal') return [button("I'm back", true, () => brain.endMeal())];
     if (brain.state === 'break') return [button('Break over', true, () => brain.breakOver())];
     if (brain.state === 'waking' || brain.state === 'celebrating' || brain.state === 'walking') return [];
@@ -89,15 +89,27 @@
     if (on) { clearTimeout(leaveTimer); leaveTimer = null; if (!over) { over = true; guard.hover(true); } showHover(true); return; }
     if (over && !leaveTimer) leaveTimer = setTimeout(() => { over = false; leaveTimer = null; guard.hover(false); showHover(false); }, 450);
   }
+  // Click and drag. A press that does not move is a click (wakes him from a meal, ends a break).
+  // A press that moves is a drag: he hangs from the mouse, drops, sits, complains and walks back.
+  let press = null, dragging = false, dragTimes = [];
   window.addEventListener('mousemove', (e) => {
+    if (press && !dragging && Math.hypot(e.screenX - press.x, e.screenY - press.y) > 6 && !brain.quiet && !moving && brain.state !== 'meal') {
+      dragging = true; ui.hide(); showHover(false); guard.dragStart(); ch.dragStart();
+    }
+    if (dragging) { guard.drag(e.screenX - press.x, e.screenY - press.y); ch.dragMove(e.movementX * 60); return; }
     const el = document.elementFromPoint(e.clientX, e.clientY);
     setOver(!!(el && el.closest('.hit')) || onCharacter(e.clientX, e.clientY));
   });
-  document.addEventListener('mouseleave', () => setOver(false));
-  window.addEventListener('mousedown', (e) => {                   // clicking him while he sleeps wakes him up
-    if (!onCharacter(e.clientX, e.clientY)) return;
-    if (brain.state === 'meal') brain.endMeal();
-    else if (brain.state === 'break') brain.breakOver();          // and clicking him on a break ends the break
+  document.addEventListener('mouseleave', () => { if (!dragging) setOver(false); });
+  window.addEventListener('mousedown', (e) => {
+    if (e.button === 0 && !e.target.closest('.hit') && onCharacter(e.clientX, e.clientY)) press = { x: e.screenX, y: e.screenY };
+  });
+  window.addEventListener('mouseup', () => {
+    const was = press; press = null;
+    if (dragging) { dragging = false; moving = true; guard.drop(); return; }      // let go: he falls, then onArrived('ground')
+    if (!was) return;
+    if (brain.state === 'meal') brain.endMeal();                    // clicking him while he sleeps wakes him up
+    else if (brain.state === 'break') brain.breakOver();            // and clicking him on a break ends the break
   });
 
   // ---------- events from Guard (tray menu now; sensing arrives in Phase 2) ----------
@@ -122,21 +134,37 @@
   });
 
   // ---------- ignored for too long: he walks to the middle of the screen and stays until the video is closed ----------
-  let place = 'home', moving = false;
+  let place = 'home', moving = false, holdUntil = 0;
   const WALK_SPEED = 200;                                         // same as WALK_PX_PER_SEC in src/main/main.js
+  function targetX(where) {                                       // where the window's left edge will be, to know which way to walk
+    const left = screen.availLeft || 0, w = window.outerWidth || 340;
+    return where === 'center' ? Math.round(left + (screen.availWidth - w) / 2) : left + screen.availWidth - w;
+  }
   function updatePlace() {
-    if (moving) return;
+    if (moving || dragging || performance.now() < holdUntil) return;
     const want = (brain.blocked && !brain.quiet) ? 'center' : 'home';
     if (want === place) return;
-    if (want === 'home' && ch.mode !== 'idle') return;            // let him finish his thumbs up first
+    if (want === 'home' && ch.mode !== 'idle' && ch.mode !== 'quiet') return;   // let him finish his thumbs up first
+    const dir = Math.sign(targetX(want) - window.screenX);
+    if (!dir) { place = want; return; }
     moving = true; ui.hide(); showHover(false);
-    ch.walkInPlace(want === 'center' ? -1 : 1, WALK_SPEED);       // home is on the right
+    ch.walkInPlace(dir, WALK_SPEED);
     guard.walk(want);
   }
   async function onArrived(where) {
+    if (where === 'ground') {                                     // dropped after a drag: land, sit, complain, then walk back
+      const now = performance.now();
+      dragTimes = dragTimes.filter(t => now - t < 3600000); dragTimes.push(now);      // annoyance resets after an hour
+      await ch.dragEnd();
+      if (dragTimes.length >= 2 && !brain.quiet) await ch.annoyed(Math.min(3, dragTimes.length));
+      brain.say(dragTimes.length >= 2 ? 'dragged_again' : 'dragged');
+      place = 'dropped'; holdUntil = performance.now() + 2200; moving = false;
+      return;
+    }
     place = where;
     await ch.walkDone();
     moving = false;
+    if (brain.quiet) ch.faceAway();                               // Quiet mode started while he was walking
     if (where === 'center' && brain.dist.app) brain.dist.graceUntil = brain.t;   // he speaks up as soon as he gets there
   }
 

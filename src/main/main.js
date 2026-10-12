@@ -11,7 +11,7 @@ const RENDERER_ROOT = path.join(__dirname, '..', 'renderer');
 const CSP = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'";
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
-const WIN = { width: 340, height: 452, margin: 14 };
+const WIN = { width: 340, height: 452, margin: 0 };      // he stands in the very corner
 
 let win = null, tray = null;
 const sense = require('./guard-sense');
@@ -89,12 +89,23 @@ function createWindow() {
         probe.push('before: onTop ' + win.isAlwaysOnTop());
         await js("window.__tokku.brain.activity('video', 'YouTube', 50)"); await wait(1500);
         probe.push('YouTube 50 s: onTop ' + win.isAlwaysOnTop() + ', bubble \"' + await js("document.getElementById('bubble-text').textContent") + '\", buttons ' + await js("[...document.querySelectorAll('#bubble-acts button')].map(b => b.textContent).join(' / ')") + ', pose ' + await js("window.__tokku.ch.visual.name"));
-        await js("window.__tokku.brain.choose('bargain')"); await wait(2500);
+        // a real mouse click on the first bubble button, to prove nothing covers it
+        const hit = await js("(() => { const b = document.querySelector('#bubble-acts button'), r = b.getBoundingClientRect(), x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height / 2), el = document.elementFromPoint(x, y); return { x, y, top: el && (el.tagName + ' ' + el.textContent), bubble: JSON.stringify(document.getElementById('bubble').getBoundingClientRect()) }; })()");
+        probe.push('element under the button centre: ' + hit.top + ' ; bubble box ' + hit.bubble);
+        for (const type of ['mouseMove', 'mouseDown', 'mouseUp']) win.webContents.sendInputEvent({ type, x: hit.x, y: hit.y, button: 'left', clickCount: 1 });
+        await wait(2500);
+        probe.push('after the click: bargaining ' + await js("window.__tokku.brain.bargaining"));
         probe.push('5 more minutes: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
         await js("window.__tokku.brain.activity('work', null, 3)"); await wait(1000);
         probe.push('closed, 1 s later: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
         await wait(3200);
         probe.push('closed, 4 s later: onTop ' + win.isAlwaysOnTop());
+        await js("window.guard.dragStart(); window.guard.drag(-400, -300)"); await wait(400);
+        const lifted = win.getBounds();
+        await js("window.guard.drop()"); await wait(1500);
+        probe.push('drag: lifted to ' + lifted.x + ',' + lifted.y + ' then dropped to ' + win.getBounds().x + ',' + win.getBounds().y + ' (floor y ' + homePosition().y + ')');
+        await wait(6000);
+        probe.push('after the drop he walked home: x ' + win.getBounds().x + ' (home x ' + homePosition().x + ')');
         await js("window.guard.walk('center')");
         const xs = []; for (let i = 0; i < 8; i++) { await wait(1000); xs.push(win.getBounds().x); }
         probe.push('x each second: ' + xs.join(' '));
@@ -123,6 +134,28 @@ ipcMain.on('tokku:walk', (e, where) => {
     x = Math.abs(targetX - x) <= step ? targetX : x + Math.sign(targetX - x) * step;
     win.setPosition(Math.round(x), home.y);
     if (x === targetX) { clearInterval(walkTimer); send({ type: 'arrived', where }); }
+  }, 16);
+});
+// Dragging: the window follows the mouse, then drops back to the floor.
+let dragFrom = null;
+ipcMain.on('tokku:drag-start', () => { if (win && !win.isDestroyed()) { clearInterval(walkTimer); dragFrom = win.getPosition(); } });
+ipcMain.on('tokku:drag', (e, dx, dy) => {
+  if (!win || win.isDestroyed() || !dragFrom) return;
+  const a = screen.getPrimaryDisplay().workArea, home = homePosition();
+  const x = Math.max(a.x - 120, Math.min(a.x + a.width - WIN.width + 60, dragFrom[0] + Math.round(dx)));
+  const y = Math.max(a.y - 150, Math.min(home.y, dragFrom[1] + Math.round(dy)));
+  win.setPosition(x, y);
+});
+ipcMain.on('tokku:drop', () => {
+  if (!win || win.isDestroyed()) return;
+  dragFrom = null; clearInterval(walkTimer);
+  const home = homePosition(); let [x, y] = win.getPosition(), v = 300, last = Date.now();
+  walkTimer = setInterval(() => {                                   // falls to the floor, a little faster each moment
+    if (!win || win.isDestroyed()) { clearInterval(walkTimer); return; }
+    const now = Date.now(), dt = (now - last) / 1000; last = now; v += 3200 * dt;
+    y = Math.min(home.y, y + v * dt);
+    win.setPosition(x, Math.round(y));
+    if (y >= home.y) { clearInterval(walkTimer); send({ type: 'arrived', where: 'ground' }); }
   }, 16);
 });
 ipcMain.on('tokku:hover', (e, on) => { if (win && !win.isDestroyed()) win.setIgnoreMouseEvents(!on, { forward: true }); });
@@ -185,8 +218,8 @@ else {
     serveRenderer(); lockDownSession(); createWindow();
     sense.start((r) => {
       state.lastReport = r;
-      state.sensed = r.reasons; updateQuiet();
       if (process.env.TOKKU_SHOT) return;                           // the self-test acts out its own activity
+      state.sensed = r.reasons; updateQuiet();
       send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons });
       if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes });
     }, { micCamera: () => state.micCamera });
