@@ -485,7 +485,7 @@ See section 9.5. Text bubble plus the 2-frame mouth flap for the demo. Rhubarb l
 | Item | Status | Where |
 |---|---|---|
 | Phase 0: Electron shell, git, sandboxed window, local-only `app://` loading, network and permission blocks | Done and tested Sun 11 Oct (`npm start` shows the old idle Tokku) | `src/main/main.js`, `src/renderer/app.js` |
-| Phase 1A: sprite pipeline | Done Mon 12 Oct, waiting for my approval of `art/review/contact-sheet.png`. 79 frames in `assets/v3/`, `character.json` is version 3 (poses, 12-view ring, 8-frame walk, sequences). Old art moved to `assets/_old/` and still used by the engine until Phase 1B | `tools/cut_sprites.py`, `art/scale-overrides.json`, `art/review/report.json` |
+| Phase 1A: sprite pipeline | Done Mon 12 Oct, re-cut the same day from the transparent re-drawn sheets (now in `art/sheets/`; S05 gives one back view used for 120 and 150 degrees). Waiting for my approval of `art/review/contact-sheet.png`. 79 frames in `assets/v3/`, `character.json` is version 3 (poses, 12-view ring, 8-frame walk, sequences). Old art moved to `assets/_old/` and still used by the engine until Phase 1B | `tools/cut_sprites.py`, `art/scale-overrides.json`, `art/review/report.json` |
 | Phase 1B: engine sequences and review page | Next, after approval | section 11 |
 | Pomodoro 25/5, attention, Start break or Five more minutes, return after break | Done and tested in the prototype | `tokku-brain.js`, tests 1 and 2 |
 | One timer at a time, timer shown on hover or in the last minute | Done | test 1g, prototype page |

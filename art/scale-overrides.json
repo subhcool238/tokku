@@ -1,9 +1,57 @@
 {
- "_about": "Manual corrections applied last by tools/cut_sprites.py. Keys per frame: scale, anchorX, feetY. Set by eye on the contact sheet.",
- "wake_lying": { "scale": 0.95 },
- "stretch_up": { "scale": 1.02 },
- "awake_front": { "scale": 1.06 },
- "lean_wave": { "scale": 0.96 },
- "wave_hello": { "scale": 1.02 },
- "paw_stop": { "scale": 1.0 }
+ "_about": "Manual corrections applied last by tools/cut_sprites.py. Keys per frame: scale, anchorX, feetY. Set by eye on the contact sheet (transparent sheets, 12 Oct).",
+ "walk_1": {
+  "scale": 0.86
+ },
+ "walk_2": {
+  "scale": 0.86
+ },
+ "walk_3": {
+  "scale": 0.86
+ },
+ "walk_4": {
+  "scale": 0.86
+ },
+ "walk_5": {
+  "scale": 0.93
+ },
+ "walk_6": {
+  "scale": 0.93
+ },
+ "walk_7": {
+  "scale": 0.93
+ },
+ "walk_8": {
+  "scale": 0.93
+ },
+ "walk_start_lean": {
+  "scale": 0.86
+ },
+ "walk_start_step": {
+  "scale": 0.86
+ },
+ "walk_stop_slow": {
+  "scale": 0.86
+ },
+ "side_idle": {
+  "scale": 0.86
+ },
+ "stretch_up": {
+  "scale": 0.84
+ },
+ "annoyed_mild": {
+  "scale": 0.8
+ },
+ "annoyed_question": {
+  "scale": 0.8
+ },
+ "annoyed_angry": {
+  "scale": 0.84
+ },
+ "quiet_back_sit": {
+  "scale": 0.78
+ },
+ "quiet_rest_curl": {
+  "scale": 0.66
+ }
 }

@@ -43,7 +43,7 @@ HEAD_SHEETS = {"S05"}                # back views hide the eye patches: measure 
 CALIB_SHEETS = ("S01", "S02", "S03")  # clean side views: used to tie the eye patch measure to real head height
 FREE_SCALE = {"sleep_curl", "wake_lying", "inspect_low", "break_lie_rest", "quiet_rest_curl", "drag_land"}
 #                                      lying poses are drawn at their own size, so they are not held to the sheet median
-UNIFORM_GROUPS = (("S01", "S02", "S03"), ("S04", "S05"))
+UNIFORM_GROUPS = (("S01",), ("S02",), ("S03",), ("S04", "S05"))
 #                                      walk frames share one size, turn frames share one size (no popping inside a cycle)
 SCALE_SPREAD = 0.05                  # a frame may differ this much from its sheet's median scale
 
@@ -130,6 +130,47 @@ def cut_cells(sheet_path):
     top, bottom = crop_bands(rgb)
     xs = [0] + cuts + [W]
     return [rgb[top:bottom, xs[i]:xs[i + 1]].copy() for i in range(4)], top
+
+
+# ---------------------------------------------------------------- transparent sheets (no background to remove)
+def has_alpha(sheet_path):
+    im = Image.open(sheet_path)
+    if im.mode not in ("RGBA", "LA"):
+        return False
+    return bool((np.array(im.getchannel("A")) < 128).mean() > 0.05)
+
+
+def cut_figures_alpha(sheet_path, count, sid, log):
+    """A sheet with a transparent background: the figures are simply the biggest separate shapes.
+
+    Returns one (rgb, alpha, top_row) per figure, left to right, already trimmed. Small separate
+    shapes (leftover drawn marks, stray specks) are dropped.
+    """
+    im = np.array(Image.open(sheet_path).convert("RGBA"))
+    rgb, a = im[..., :3], im[..., 3].astype(np.float32) / 255.0
+    a[a < 0.08] = 0.0
+    a[a > 0.97] = 1.0
+    n, lab, st, cen = cv2.connectedComponentsWithStats((a > 0.3).astype(np.uint8), connectivity=8)
+    order = sorted(range(1, n), key=lambda i: -st[i, cv2.CC_STAT_AREA])
+    figs = [i for i in order[:count] if st[i, cv2.CC_STAT_AREA] > 0.15 * st[order[0], cv2.CC_STAT_AREA]]
+    if len(figs) < count:
+        # two figures touch: fall back to equal columns and take the biggest shape in each
+        log.append(f"{sid}: only {len(figs)} separate figures found, used equal columns instead (check for cut tails)")
+        W = a.shape[1]
+        out = []
+        for k in range(count):
+            x0, x1 = W * k // count, W * (k + 1) // count
+            sub = np.zeros_like(a)
+            sub[:, x0:x1] = a[:, x0:x1]
+            n2, lab2, st2, _ = cv2.connectedComponentsWithStats((sub > 0.3).astype(np.uint8), connectivity=8)
+            big = 1 + int(np.argmax(st2[1:, cv2.CC_STAT_AREA]))
+            out.append(trim(rgb, sub * dilate(lab2 == big, 3), 0))
+        return out
+    for i in order[count:]:
+        if st[i, cv2.CC_STAT_AREA] > 120:
+            log.append(f"{sid}: dropped a separate shape of {int(st[i, cv2.CC_STAT_AREA])} px (drawn mark or speck)")
+    figs.sort(key=lambda i: cen[i][0])
+    return [trim(rgb, a * dilate(lab == i, 3), 0) for i in figs]
 
 
 # ---------------------------------------------------------------- step 3: background
@@ -586,19 +627,26 @@ def main():
         if sh.get("skip"):
             print(f"{sid}: skipped ({sh['reason']})")
             continue
-        cells, top = cut_cells(SHEETS / sh["file"])
-        for i, (cell, fr) in enumerate(zip(cells, sh["frames"])):
+        clear = has_alpha(SHEETS / sh["file"])
+        if clear:
+            figs = cut_figures_alpha(SHEETS / sh["file"], len(sh["frames"]), sid, log)
+        else:
+            cells, top = cut_cells(SHEETS / sh["file"])
+        for i, fr in enumerate(sh["frames"]):
             if not fr["use"]:
                 continue
             name = fr["name"]
-            rgb, a = process_cell(cell, f"{sid}_{i}", name, bool(fr.get("remove_marks")), MODEL, log, fr.get("erase", ()),
-                                  bool(fr.get("fix_white")))
-            if fr.get("remove_marks"):
-                flag(name, "had a drawn mark removed")
-            touch = [(a[:, 0] > 0.3).any(), (a[:, -1] > 0.3).any(), (a[0] > 0.3).any()]
-            if any(touch):
-                flag(name, "touches the edge of its cell, something may be cut")
-            rgb, a, sheet_y = trim(rgb, a, top)
+            if clear:
+                rgb, a, sheet_y = figs[i]
+            else:
+                rgb, a = process_cell(cells[i], f"{sid}_{i}", name, bool(fr.get("remove_marks")), MODEL, log,
+                                      fr.get("erase", ()), bool(fr.get("fix_white")))
+                if fr.get("remove_marks"):
+                    flag(name, "had a drawn mark removed")
+                touch = [(a[:, 0] > 0.3).any(), (a[:, -1] > 0.3).any(), (a[0] > 0.3).any()]
+                if any(touch):
+                    flag(name, "touches the edge of its cell, something may be cut")
+                rgb, a, sheet_y = trim(rgb, a, top)
             frames[name] = {"name": name, "sheet": sid, "rgb": rgb, "a": a, "sheet_y": sheet_y,
                             "mirror": bool(fr.get("mirror")), "airborne": bool(fr.get("airborne")) or name in AIRBORNE}
             by_sheet.setdefault(sid, []).append(name)
@@ -606,6 +654,9 @@ def main():
 
     # ---- colour match per sheet, to walk_1
     ref_h, ref_s = fur_stats(frames["walk_1"]["rgb"], frames["walk_1"]["a"])
+    if m.get("colour_reference", "").startswith("old idle"):
+        ref_h, ref_s = fur_stats(idle[..., :3], ia)
+    print(f"  colour reference: hue {ref_h:.1f} sat {ref_s:.3f} ({m.get('colour_reference')})")
     for sid, names in by_sheet.items():
         st = [fur_stats(frames[n]["rgb"], frames[n]["a"]) for n in names]
         st = [x for x in st if x]

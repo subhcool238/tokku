@@ -1,5 +1,5 @@
 {
- "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame. 'erase' = boxes [x0, y0, x1, y1] in pixels of the cell (x from the cell's left edge, y from the top of the sheet) that are painted white before cutting. 'fix_white': true = take back white face fur that the background remover ate (use only where a notch shows in the forehead or muzzle).",
+ "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame. 'erase' = boxes [x0, y0, x1, y1] in pixels of the cell (x from the cell's left edge, y from the top of the sheet) that are painted white before cutting. 'fix_white': true = take back white face fur that the background remover ate (use only where a notch shows in the forehead or muzzle). Sheets with a transparent background are detected automatically: their figures are found by shape, left to right, and 'remove_marks', 'erase' and 'fix_white' are then not needed.",
  "sheets": {
   "S01": {
    "file": "S01_walk_A.png",
@@ -101,11 +101,12 @@
   "S05": {
    "file": "S05_turn_B.png",
    "layout": "4 equal columns, 1 row",
-   "note": "",
+   "note": "Transparent re-draw (12 Oct): frame 1 is now wrong (face and tail point the same way). Only frame 2 is a usable back three-quarter view, used for both 120 and 150 degrees.",
    "frames": [
     {
-     "name": "turn_120",
-     "use": true
+     "name": "turn_120_bad",
+     "use": false,
+     "reason": "face and tail point the same way; turn_120 is a copy of turn_150"
     },
     {
      "name": "turn_150",
@@ -129,8 +130,7 @@
    "frames": [
     {
      "name": "sleepy_stand",
-     "use": true,
-     "fix_white": true
+     "use": true
     },
     {
      "name": "yawn_sit",
@@ -138,8 +138,7 @@
     },
     {
      "name": "drowsy_sit",
-     "use": true,
-     "fix_white": true
+     "use": true
     },
     {
      "name": "sleep_curl",
@@ -163,15 +162,7 @@
     {
      "name": "sleep_ear_twitch",
      "use": true,
-     "remove_marks": true,
-     "erase": [
-      [
-       258,
-       148,
-       348,
-       193
-      ]
-     ]
+     "remove_marks": true
     },
     {
      "name": "sleep_tail_curl",
@@ -219,8 +210,7 @@
     {
      "name": "wake_yawn_lying",
      "use": true,
-     "remove_marks": true,
-     "fix_white": true
+     "remove_marks": true
     },
     {
      "name": "wake_sit_rub",
@@ -314,8 +304,7 @@
     },
     {
      "name": "joy_jump",
-     "use": true,
-     "fix_white": true
+     "use": true
     },
     {
      "name": "joy_wink_thumbs",
@@ -457,14 +446,12 @@
    "frames": [
     {
      "name": "break_stretch",
-     "use": true,
-     "fix_white": true
+     "use": true
     },
     {
      "name": "break_yawn",
      "use": true,
-     "remove_marks": true,
-     "fix_white": true
+     "remove_marks": true
     },
     {
      "name": "break_sit_relaxed",
@@ -511,6 +498,10 @@
  },
  "derived": [
   {
+   "name": "turn_120",
+   "from": "turn_150"
+  },
+  {
    "name": "turn_210",
    "from": "turn_150",
    "mirror": true
@@ -539,6 +530,6 @@
  "keep_from_old_kit": [
   "rig (front idle layers: body, tail, ear_l, ear_r, blink_half, blink_closed, mouth_open)"
  ],
- "colour_reference": "S01 frame 1 (walk_1)",
+ "colour_reference": "old idle (assets rig), because every frame crossfades to and from the idle rig",
  "head_size_reference": "the old idle rig body (assets/rig/body.png)"
 }
