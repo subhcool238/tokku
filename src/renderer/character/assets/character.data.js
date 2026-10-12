@@ -740,6 +740,54 @@ window.TOKKU_CHARACTER = {
    "feetY": 654,
    "scale": 0.775
   },
+  "walkd_stand": {
+   "file": "v3/walkd_stand.png",
+   "w": 314,
+   "h": 328,
+   "anchorX": 231,
+   "feetY": 320,
+   "scale": 1.639
+  },
+  "walkd_1": {
+   "file": "v3/walkd_1.png",
+   "w": 308,
+   "h": 322,
+   "anchorX": 224,
+   "feetY": 314,
+   "scale": 1.639
+  },
+  "walkd_2": {
+   "file": "v3/walkd_2.png",
+   "w": 339,
+   "h": 327,
+   "anchorX": 247,
+   "feetY": 319,
+   "scale": 1.639
+  },
+  "walkd_3": {
+   "file": "v3/walkd_3.png",
+   "w": 316,
+   "h": 325,
+   "anchorX": 232,
+   "feetY": 316,
+   "scale": 1.639
+  },
+  "walkd_4": {
+   "file": "v3/walkd_4.png",
+   "w": 320,
+   "h": 324,
+   "anchorX": 236,
+   "feetY": 316,
+   "scale": 1.639
+  },
+  "walkd_5": {
+   "file": "v3/walkd_5.png",
+   "w": 333,
+   "h": 324,
+   "anchorX": 250,
+   "feetY": 315,
+   "scale": 1.639
+  },
   "turn_210": {
    "file": "v3/turn_210.png",
    "w": 464,
@@ -981,15 +1029,20 @@ window.TOKKU_CHARACTER = {
  },
  "walk": {
   "right": [
-   "walk_1",
-   "walk_2",
-   "walk_3",
-   "walk_4"
+   "walkd_2",
+   "walkd_3",
+   "walkd_5",
+   "walkd_1"
   ],
-  "start": [],
-  "stop": [],
-  "framePx": 14,
-  "note": "4 frame cycle from S01 only (contact, down, passing, up), facing right. In side view both legs look the same, so one step repeated reads as walking, and all 4 frames share one drawing style. The frame advances every framePx screen pixels. Mirror for left."
+  "start": [
+   "walkd_stand"
+  ],
+  "stop": [
+   "walkd_stand"
+  ],
+  "framePx": 15,
+  "fadeMs": 45,
+  "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. The frame advances every framePx screen pixels, with a short blend. Mirror for left."
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
  "sequences": {
@@ -1260,11 +1313,7 @@ window.TOKKU_CHARACTER = {
     },
     {
      "pose": "surprise_strong",
-     "ms": 700
-    },
-    {
-     "pose": "surprise_recover",
-     "ms": 600
+     "ms": 1000
     }
    ],
    "end": "rig"

@@ -50,7 +50,7 @@ function feetRow(png) {
 }
 
 const v3 = Object.entries(char.poses).filter(([, p]) => !p.legacy);
-check('there are 79 art v3 frames', v3.length === 79, String(v3.length));
+check('there are 85 art v3 frames', v3.length === 85, String(v3.length));
 
 // 1. every frame named in a sequence exists in character.json and on disk
 for (const [name, q] of Object.entries(char.sequences)) {
@@ -77,7 +77,7 @@ for (const [name, p] of v3) {
   check(`${name}: has a transparent background`, corners.every(a => a === 0), corners.join(','));
   const fr = feetRow(png), want = p.feetY - (p.airPx || 0);
   check(`${name}: feet within 3 px of feetY${p.airPx ? ' (airborne, ' + p.airPx + ' px up)' : ''}`, Math.abs(fr - want) <= 3, `feet row ${fr}, expected ${want}`);
-  check(`${name}: anchor inside the picture, sensible scale`, p.anchorX > 0 && p.anchorX < p.w && p.scale > 0.5 && p.scale < 1.3, `anchorX ${p.anchorX} scale ${p.scale}`);
+  check(`${name}: anchor inside the picture, sensible scale`, p.anchorX > 0 && p.anchorX < p.w && p.scale > 0.5 && p.scale < 2.2, `anchorX ${p.anchorX} scale ${p.scale}`);
 }
 
 // 4. idle rig layers

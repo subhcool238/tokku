@@ -37,7 +37,7 @@ CHAR_JSON = ASSETS / "character.json"
 MODEL = "u2net"                      # compared with isnet-general-use on S01 and S06: fewer ragged bits in white face fur
 MARGIN = 6                           # transparent pixels kept around each trimmed frame
 AIRBORNE = {"joy_jump", "drag_grab", "drag_hang"}
-WALK_LIKE = ("walk_", "side_idle")   # anchor on the torso, not the feet, so the body does not jitter
+WALK_LIKE = ("walk_", "walkd_", "side_idle")   # anchor on the torso, not the feet, so the body does not jitter
 SCALE_FALLBACK = {"S07": "S06"}      # sheets with no measurable frame borrow the scale of another sheet
 HEAD_SHEETS = {"S05"}                # back views hide the eye patches: measure head height (top to neck) instead
 CALIB_SHEETS = ("S01", "S02", "S03")  # clean side views: used to tie the eye patch measure to real head height
@@ -144,7 +144,7 @@ def has_alpha(sheet_path):
     return bool((np.array(im.getchannel("A")) < 128).mean() > 0.05)
 
 
-def cut_figures_alpha(sheet_path, count, sid, log):
+def cut_figures_alpha(sheet_path, count, sid, log, rows=1):
     """A sheet with a transparent background: the figures are simply the biggest separate shapes.
 
     Returns one (rgb, alpha, top_row) per figure, left to right, already trimmed. Small separate
@@ -173,7 +173,8 @@ def cut_figures_alpha(sheet_path, count, sid, log):
     for i in order[count:]:
         if st[i, cv2.CC_STAT_AREA] > 120:
             log.append(f"{sid}: dropped a separate shape of {int(st[i, cv2.CC_STAT_AREA])} px (drawn mark or speck)")
-    figs.sort(key=lambda i: cen[i][0])
+    row_h = a.shape[0] / rows
+    figs.sort(key=lambda i: (int(cen[i][1] // row_h), cen[i][0]))      # row by row, left to right
     return [trim(rgb, a * dilate(lab == i, 3), 0) for i in figs]
 
 
@@ -572,7 +573,7 @@ SEQUENCES = {
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),
     "quiet_off": seq(("quiet_back_sit", 250), after="turn:0", end="rig"),
     "welcome_back": seq(("joy_excited", 1500), end="rig"),      # simply happy to see you
-    "surprise": seq(("surprise_start", 250), ("surprise_strong", 700), ("surprise_recover", 600), end="rig"),
+    "surprise": seq(("surprise_start", 250), ("surprise_strong", 1000), end="rig"),      # no smiling frame at the end
     "point_at_task": seq(("found_point", 0), hold="found_point"),
     "idle_inspect": seq(("inspect_low", 1600), end="rig"),
     "idle_glance": seq(("turn_030", 600), end="rig"),
@@ -659,7 +660,7 @@ def main():
             continue
         clear = has_alpha(SHEETS / sh["file"])
         if clear:
-            figs = cut_figures_alpha(SHEETS / sh["file"], len(sh["frames"]), sid, log)
+            figs = cut_figures_alpha(SHEETS / sh["file"], len(sh["frames"]), sid, log, sh.get("rows", 1))
         else:
             cells, top = cut_cells(SHEETS / sh["file"])
         for i, fr in enumerate(sh["frames"]):
@@ -778,6 +779,10 @@ def main():
             k = stand * walking / float(np.mean([tall(n) for n in by_sheet[sid]]))
             for n in by_sheet[sid]:
                 frames[n]["scale"] = k
+        if "W01" in by_sheet:      # the detailed walk sheet: one scale for the whole sheet, from its standing frame
+            k = stand / tall("walkd_stand")
+            for n in by_sheet["W01"]:
+                frames[n]["scale"] = k
         print(f"  standing height {stand:.0f} px: turn and walk frames scaled to it")
 
     # ---- mirror and derived frames
@@ -840,10 +845,10 @@ def main():
                     "ring": [{"yaw": y, "pose": n, "file": f"v3/{n}.png", "anchorX": poses[n]["anchorX"],
                               "feetY": poses[n]["feetY"], "scale": poses[n]["scale"]}
                              for n, y in sorted(YAW.items(), key=lambda kv: kv[1])]}
-    char["walk"] = {"right": WALK8[:4], "start": [], "stop": [], "framePx": 14,
-                    "note": "4 frame cycle from S01 only (contact, down, passing, up), facing right. In side view both legs look "
-                            "the same, so one step repeated reads as walking, and all 4 frames share one drawing style. "
-                            "The frame advances every framePx screen pixels. Mirror for left."}
+    char["walk"] = {"right": ["walkd_2", "walkd_3", "walkd_5", "walkd_1"], "start": ["walkd_stand"], "stop": ["walkd_stand"],
+                    "framePx": 15, "fadeMs": 45,
+                    "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. "
+                            "The frame advances every framePx screen pixels, with a short blend. Mirror for left."}
     char["sequences"] = SEQUENCES
     char["scaleNote"] = ("Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest "
                          "circle that fits in the head. Manual corrections: art/scale-overrides.json.")

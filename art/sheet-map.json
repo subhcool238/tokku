@@ -1,5 +1,5 @@
 {
- "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame. 'erase' = boxes [x0, y0, x1, y1] in pixels of the cell (x from the cell's left edge, y from the top of the sheet) that are painted white before cutting. 'fix_white': true = take back white face fur that the background remover ate (use only where a notch shows in the forehead or muzzle). Sheets with a transparent background are detected automatically: their figures are found by shape, left to right, and 'remove_marks', 'erase' and 'fix_white' are then not needed.",
+ "_about": "Map of every sprite sheet. Cell = column index 0..3. Crop each cell between the title band (top) and the caption band (bottom). 'mirror' = flip horizontally after cutting. 'use': false = do not export for the engine. 'derive' = make this frame by mirroring another frame. 'erase' = boxes [x0, y0, x1, y1] in pixels of the cell (x from the cell's left edge, y from the top of the sheet) that are painted white before cutting. 'fix_white': true = take back white face fur that the background remover ate (use only where a notch shows in the forehead or muzzle). Sheets with a transparent background are detected automatically: their figures are found by shape, left to right, and 'remove_marks', 'erase' and 'fix_white' are then not needed. 'rows': number of rows of figures on a transparent sheet (figures are read row by row, left to right).",
  "sheets": {
   "S01": {
    "file": "S01_walk_A.png",
@@ -493,6 +493,68 @@
    "file": "S20_mouth_shapes.png",
    "skip": true,
    "reason": "Heads are tilted and eyes look in different directions, so they do not fit the front idle. Keep the existing 2-frame mouth flap."
+  },
+  "W01": {
+   "file": "W01_walk_detailed.png",
+   "layout": "2 rows of 6 figures",
+   "rows": 2,
+   "note": "Detailed walk (12 Oct). Row 1 faces right: standing, then passing, stride, passing, passing, stride. Row 2 is the same walk facing left and is not used: walking left is the mirrored right row, so both directions match.",
+   "frames": [
+    {
+     "name": "walkd_stand",
+     "use": true
+    },
+    {
+     "name": "walkd_1",
+     "use": true
+    },
+    {
+     "name": "walkd_2",
+     "use": true
+    },
+    {
+     "name": "walkd_3",
+     "use": true
+    },
+    {
+     "name": "walkd_4",
+     "use": true
+    },
+    {
+     "name": "walkd_5",
+     "use": true
+    },
+    {
+     "name": "walkd_left_1",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walkd_left_2",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walkd_left_3",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walkd_left_4",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walkd_left_5",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walkd_left_6",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    }
+   ]
   }
  },
  "derived": [

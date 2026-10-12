@@ -295,7 +295,7 @@
       const step = Math.min(rem, w.v * dt);
       this.x += w.dir * step; w.dist += step;
       const f = Math.floor(w.dist / per) % frames.length;     // the frame follows distance, so the feet do not slide
-      if (f !== w.frame) { w.frame = f; this.pose(frames[f], 0, w.dir < 0, true); }   // hard cut: a fade would smear the fast frames
+      if (f !== w.frame) { w.frame = f; this.pose(frames[f], W.fadeMs || 0, w.dir < 0, true); }   // short blend only: a long fade smears the frames
       this.leanTarget = w.dir * 0.02 * (w.v / vmax);
       if (rem - step < 0.5) { this.x = w.tx; const d = w.done; this.walk = null; d(true); }
     }

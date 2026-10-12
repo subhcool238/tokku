@@ -2,52 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tokku review: sequences</title>
   <style>
-    html, body { margin: 0; background: #23262e; color: #dfe3ee; font: 14px system-ui, sans-serif; }
-    main { max-width: 1000px; margin: 0 auto; padding: 14px; }
-    h1 { font-size: 18px; margin: 0 0 4px; }
-    h2 { font-size: 13px; margin: 14px 0 6px; color: #9aa3b8; text-transform: uppercase; letter-spacing: .06em; }
-    p.hint { margin: 0 0 10px; color: #9aa3b8; }
-    #stage-wrap { position: relative; background: #3a3f4c; border-radius: 10px; overflow: hidden; }
+    :root {
+      --ink: #f4f6fb; --ink-soft: rgba(244, 246, 251, .66);
+      --glass: rgba(255, 255, 255, .10); --glass-strong: rgba(255, 255, 255, .18);
+      --edge: rgba(255, 255, 255, .34); --edge-soft: rgba(255, 255, 255, .14);
+      --amber: #ffb24a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; color: var(--ink); font: 14px/1.4 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; }
+    body {
+      background:
+        radial-gradient(900px 520px at 12% -8%, rgba(255, 150, 60, .55), transparent 62%),
+        radial-gradient(760px 520px at 96% 8%, rgba(96, 132, 255, .50), transparent 60%),
+        radial-gradient(900px 620px at 55% 112%, rgba(60, 200, 190, .40), transparent 62%),
+        linear-gradient(160deg, #1a1d2b, #10121b 70%);
+      background-attachment: fixed;
+    }
+    main { max-width: 1040px; margin: 0 auto; padding: 22px 18px 40px; }
+    header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    h1 { font-size: 20px; font-weight: 650; margin: 0; letter-spacing: -.01em; }
+    header p { margin: 0; color: var(--ink-soft); }
+
+    /* liquid glass surface: frosted blur, bright top edge, soft inner glow, drop shadow */
+    .glass {
+      position: relative; background: linear-gradient(180deg, var(--glass-strong), var(--glass));
+      -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%);
+      border: 1px solid var(--edge-soft); border-top-color: var(--edge);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 -10px 24px rgba(255, 255, 255, .04), 0 14px 36px rgba(0, 0, 0, .34);
+    }
+
+    #stage-wrap { border-radius: 26px; overflow: hidden; }
     #stage { display: block; width: 100%; }
-    #bubble { position: absolute; max-width: 300px; background: #fff; color: #1d2030; border-radius: 12px; padding: 10px 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.35); transform: translate(-50%, -100%); display: none; }
-    #bubble .acts { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-    #status { margin: 8px 0 0; color: #9aa3b8; font-family: ui-monospace, Consolas, monospace; font-size: 12px; min-height: 16px; }
-    .row { display: flex; flex-wrap: wrap; gap: 6px; }
-    button { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid #555d70; background: #2f3441; color: #eef1f8; cursor: pointer; }
-    button:hover { background: #3b4254; }
-    button.primary { background: #e08a2e; border-color: #e08a2e; color: #1d1405; font-weight: 600; }
-    #bubble button { background: #f1f2f6; color: #1d2030; border-color: #c9cddb; padding: 4px 8px; }
-    label { margin-right: 14px; }
+    #status { margin: 0; padding: 9px 16px; color: var(--ink-soft); font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace;
+      border-top: 1px solid var(--edge-soft); min-height: 34px; background: rgba(8, 10, 18, .28); }
+
+    #bubble { position: absolute; max-width: 320px; padding: 12px 14px; border-radius: 20px; display: none;
+      transform: translate(-50%, -100%); color: #171a26;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .86), rgba(255, 255, 255, .66));
+      -webkit-backdrop-filter: blur(18px) saturate(180%); backdrop-filter: blur(18px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, .9);
+      box-shadow: inset 0 1px 0 #fff, 0 12px 30px rgba(0, 0, 0, .35); }
+    #bubble-text { font-size: 14.5px; font-weight: 500; }
+    #bubble .acts { margin-top: 10px; display: flex; gap: 7px; flex-wrap: wrap; }
+
+    .bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0 14px; }
+    .spacer { flex: 1; }
+
+    button { font: inherit; color: var(--ink); cursor: pointer; padding: 8px 15px; border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .08));
+      -webkit-backdrop-filter: blur(14px) saturate(170%); backdrop-filter: blur(14px) saturate(170%);
+      border: 1px solid var(--edge-soft); border-top-color: var(--edge);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .34), 0 4px 12px rgba(0, 0, 0, .22);
+      transition: transform .12s ease, background .16s ease, box-shadow .16s ease; }
+    button:hover { background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .14)); transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 8px 18px rgba(0, 0, 0, .28); }
+    button:active { transform: translateY(0) scale(.97); box-shadow: inset 0 2px 6px rgba(0, 0, 0, .28); }
+    button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+    button.primary { color: #2a1700; font-weight: 650; padding: 10px 20px;
+      background: linear-gradient(180deg, rgba(255, 205, 130, .96), rgba(255, 160, 50, .88)); border-color: rgba(255, 226, 180, .9);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 8px 22px rgba(255, 150, 40, .38); }
+    button.primary:hover { background: linear-gradient(180deg, rgba(255, 216, 150, 1), rgba(255, 172, 66, .95)); }
+    #bubble button { color: #171a26; padding: 6px 13px; background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(236, 239, 248, .8));
+      border-color: rgba(190, 196, 214, .9); box-shadow: inset 0 1px 0 #fff, 0 2px 6px rgba(20, 24, 40, .16); }
+    #bubble button:first-child { color: #2a1700; background: linear-gradient(180deg, #ffd08a, #ffa838); border-color: #ffc270; }
+
+    /* segmented controls: speed selector and tabs */
+    .segment { display: inline-flex; padding: 4px; border-radius: 999px; gap: 2px; }
+    .segment button, .segment label { border: 0; box-shadow: none; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
+      padding: 7px 16px; border-radius: 999px; color: var(--ink-soft); cursor: pointer; transition: background .16s ease, color .16s ease; }
+    .segment button:hover, .segment label:hover { color: var(--ink); transform: none; background: rgba(255, 255, 255, .08); }
+    .segment button[aria-selected="true"], .segment input:checked + span { color: var(--ink); }
+    .segment button[aria-selected="true"], .segment label:has(input:checked) {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .36), rgba(255, 255, 255, .16));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 3px 10px rgba(0, 0, 0, .25); color: var(--ink); }
+    .segment input { position: absolute; opacity: 0; pointer-events: none; }
+    .segment-label { color: var(--ink-soft); margin-right: 2px; }
+
+    .panel { border-radius: 24px; padding: 16px; margin-top: 12px; }
+    .panel[hidden] { display: none; }
+    .panel p { margin: 0 0 12px; color: var(--ink-soft); }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; }
+    @media (prefers-reduced-motion: reduce) { button { transition: none; } }
   </style>
 </head>
 <body>
 <main>
-  <h1>Tokku review page</h1>
-  <p class="hint">Every button plays one thing. "Play full story" runs them in a realistic order (about one minute at 1x).</p>
-  <div id="stage-wrap">
-    <canvas id="stage" width="1000" height="430"></canvas>
-    <div id="bubble"><div id="bubble-text"></div><div class="acts" id="bubble-acts"></div></div>
-  </div>
-  <p id="status">Loading...</p>
+  <header>
+    <h1>Tokku review</h1>
+    <p>Every button plays one thing. "Play full story" runs them in a realistic order, about one minute at 1x.</p>
+  </header>
 
-  <div class="row">
+  <div id="stage-wrap" class="glass">
+    <div style="position:relative">
+      <canvas id="stage" width="1000" height="430"></canvas>
+      <div id="bubble"><div id="bubble-text"></div><div class="acts" id="bubble-acts"></div></div>
+    </div>
+    <p id="status">Loading...</p>
+  </div>
+
+  <div class="bar">
     <button class="primary" id="story">Play full story</button>
     <button id="stop">Back to idle</button>
-    <span style="align-self:center;margin-left:10px">Speed:
-      <label><input type="radio" name="speed" value="0.5"> 0.5x</label>
-      <label><input type="radio" name="speed" value="1" checked> 1x</label>
-    </span>
+    <span class="spacer"></span>
+    <span class="segment-label">Speed</span>
+    <div class="segment glass" role="radiogroup" aria-label="Speed">
+      <label><input type="radio" name="speed" value="0.5"><span>0.5x</span></label>
+      <label><input type="radio" name="speed" value="1" checked><span>1x</span></label>
+    </div>
   </div>
 
-  <h2>What happens in the app (through the brain)</h2>
-  <div class="row" id="brain-buttons"></div>
-  <h2>Character actions</h2>
-  <div class="row" id="action-buttons"></div>
-  <h2>Single sequences</h2>
-  <div class="row" id="sequence-buttons"></div>
+  <div class="segment glass" role="tablist" aria-label="Button groups">
+    <button role="tab" aria-selected="true" data-tab="tab-brain">In the app</button>
+    <button role="tab" aria-selected="false" data-tab="tab-actions">Character actions</button>
+    <button role="tab" aria-selected="false" data-tab="tab-sequences">Single sequences</button>
+  </div>
+
+  <section class="panel glass" id="tab-brain" role="tabpanel">
+    <p>What happens in the real app, decided by the brain (timers, bubble, buttons).</p>
+    <div class="row" id="brain-buttons"></div>
+  </section>
+  <section class="panel glass" id="tab-actions" role="tabpanel" hidden>
+    <p>One character action at a time, without the brain.</p>
+    <div class="row" id="action-buttons"></div>
+  </section>
+  <section class="panel glass" id="tab-sequences" role="tabpanel" hidden>
+    <p>Each frame sequence from character.json, by name.</p>
+    <div class="row" id="sequence-buttons"></div>
+  </section>
 </main>
 <script src="../../src/renderer/character/assets/character.data.js"></script>
 <script src="../../src/renderer/character/tokku-character.js"></script>

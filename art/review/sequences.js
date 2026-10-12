@@ -92,6 +92,12 @@
     add('sequence-buttons', name, () => { ui.hide(); ch.play(name); });
   }
 
+  // ---- tabs
+  const tabs = [...document.querySelectorAll('[role=tab]')];
+  tabs.forEach(t => t.onclick = () => tabs.forEach(o => {
+    o.setAttribute('aria-selected', String(o === t)); document.getElementById(o.dataset.tab).hidden = o !== t;
+  }));
+
   // ---- full story
   let storyRun = 0;
   async function story() {
@@ -123,9 +129,10 @@
   // ---- drawing loop
   function drawFloor() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#343946'; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-    ctx.fillStyle = '#566078'; ctx.fillRect(HOME_X - 1, GROUND_Y, 2, 10);
-    ctx.font = '11px system-ui'; ctx.fillStyle = '#8a93a8'; ctx.fillText('home', HOME_X - 14, GROUND_Y + 24);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.07)'; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)'; ctx.fillRect(0, GROUND_Y, canvas.width, 1);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; ctx.fillRect(HOME_X - 1, GROUND_Y, 2, 10);
+    ctx.font = '11px system-ui'; ctx.fillStyle = 'rgba(255, 255, 255, 0.55)'; ctx.fillText('home', HOME_X - 14, GROUND_Y + 24);
   }
   function frame(dt) {
     ch.update(dt * speed); brain.tick(dt * 1000 * speed);
