@@ -57,6 +57,7 @@
     tick(dtMs) {
       this.t += dtMs;
       if (this.timer && this.t >= this.timer.endsAt) { const tm = this.timer; this.timer = null; this._due(tm.kind); }
+      this.ch.face = ((this.watching && !this.bargaining) || this.ch.forceAngry) ? 'angry' : 'normal';   // on watch over a video: angry idle
       if (this.ui.onTimer) this.ui.onTimer(this.timerInfo());
     }
     timerInfo() { if (!this.timer) return null; return { kind: this.timer.kind, remainingMs: Math.max(0, this.timer.endsAt - this.t), state: this.state }; }
@@ -90,7 +91,7 @@
         this.nudging = false; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.renudgeSec * 1000;
         this.ignored++;
         if (this.ignored >= this.o.blockAfterIgnored && !this.blocked) { this.blocked = true; this._ev('block'); }   // the host walks him to the middle
-        if (!this.quiet) this.ch.show('annoyed_mild'); return;
+        if (!this.quiet) { this.ch.face = 'angry'; this.ch.idle(); } return;      // waits in the angry idle, blinking
       }
       if (this.state === 'attention') this._setTimer('remind', this.o.remindMin);
     }

@@ -37,7 +37,7 @@ CHAR_JSON = ASSETS / "character.json"
 MODEL = "u2net"                      # compared with isnet-general-use on S01 and S06: fewer ragged bits in white face fur
 MARGIN = 6                           # transparent pixels kept around each trimmed frame
 AIRBORNE = {"joy_jump", "drag_grab", "drag_hang"}
-WALK_LIKE = ("walk_", "walkd_", "side_idle")   # anchor on the torso, not the feet, so the body does not jitter
+WALK_LIKE = ("walk_", "walkd_", "walka_", "side_idle")   # anchor on the torso, not the feet, so the body does not jitter
 SCALE_FALLBACK = {"S07": "S06"}      # sheets with no measurable frame borrow the scale of another sheet
 HEAD_SHEETS = {"S05"}                # back views hide the eye patches: measure head height (top to neck) instead
 CALIB_SHEETS = ("S01", "S02", "S03")  # clean side views: used to tie the eye patch measure to real head height
@@ -788,10 +788,11 @@ def main():
             k = stand * walking / float(np.mean([tall(n) for n in by_sheet[sid]]))
             for n in by_sheet[sid]:
                 frames[n]["scale"] = k
-        if "W01" in by_sheet:      # the detailed walk sheet: one scale for the whole sheet, from its standing frame
-            k = stand / tall("walkd_stand")
-            for n in by_sheet["W01"]:
-                frames[n]["scale"] = k
+        for sid, standing in (("W01", "walkd_stand"), ("W02", "walka_stand")):      # detailed walk sheets: one scale per sheet, from its standing frame
+            if sid in by_sheet:
+                k = stand / tall(standing)
+                for n in by_sheet[sid]:
+                    frames[n]["scale"] = k
         print(f"  standing height {stand:.0f} px: turn and walk frames scaled to it")
 
     # ---- mirror and derived frames
@@ -862,6 +863,8 @@ def main():
                     "framePx": 30, "fadeMs": 70,
                     "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. "
                             "The frame advances every framePx screen pixels, with a short blend. Mirror for left."}
+    if "walka_stand" in frames:
+        char["walk"]["angry"] = {"right": ["walka_2", "walka_3", "walka_5", "walka_1"], "start": ["walka_stand"], "stop": ["walka_stand"]}
     char["sequences"] = SEQUENCES
     char["scaleNote"] = ("Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest "
                          "circle that fits in the head. Manual corrections: art/scale-overrides.json.")

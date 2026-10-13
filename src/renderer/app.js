@@ -20,7 +20,7 @@
   let char, images;
   try {
     char = await (await fetch(BASE + 'character.json')).json();
-    const files = new Set([...Object.values(char.rig.layers), ...Object.values(char.rig.overlays)]);
+    const files = new Set([...Object.values(char.rig.layers), ...Object.values(char.rig.overlays), ...Object.values(char.rig.angry || {})]);
     Object.values(char.poses).forEach(p => { if (!p.legacy) files.add(p.file); });   // the turn ring uses the same files
     images = Object.fromEntries(await Promise.all([...files].map(loadImage)));
     status = 'running, ' + files.size + ' images';
@@ -149,7 +149,9 @@
     const dir = Math.sign(targetX(want) - window.screenX);
     if (!dir) { place = want; return; }
     moving = true; ui.hide(); showHover(false);
-    ch.walkInPlace(dir, WALK_SPEED);
+    const angry = want === 'center' || (place === 'dropped' && dragTimes.length >= 2);      // he stomps over, or stomps back
+    ch.forceAngry = angry; ch.face = angry ? 'angry' : ch.face;
+    ch.walkInPlace(dir, WALK_SPEED, angry ? 'angry' : null);
     guard.walk(want);
   }
   async function onArrived(where) {
@@ -166,7 +168,7 @@
       return;
     }
     place = where;
-    await ch.walkDone(); if (gen !== moveGen) return;
+    await ch.walkDone(); ch.forceAngry = false; if (gen !== moveGen) return;
     moving = false;
     if (brain.quiet) ch.faceAway();                               // Quiet mode started while he was walking
     if (where === 'center' && brain.dist.app) brain.dist.graceUntil = brain.t;   // he speaks up as soon as he gets there

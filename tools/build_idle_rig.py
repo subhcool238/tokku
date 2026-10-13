@@ -28,12 +28,12 @@ OLD_IDLE_HEAD_RADIUS = 87.2      # head size every frame is matched to (see cut_
 IDLE_BOOST = 1.07                # the idle looked a little small next to the other frames (review, 12 Oct)
 
 
-def dark_parts(rgb, a):
+def dark_parts(rgb, a, head_frac=0.5):
     """Find the dark face parts: two eye patches, two ears, nose. Returns dict of masks."""
     _, _, v = cs.hsv(rgb)
     dark = cv2.morphologyEx(((a > 0.8) & (v < 0.5)).astype(np.uint8), cv2.MORPH_OPEN, cs.disk(3))
     ys = np.flatnonzero((a > 0.5).any(1))
-    dark[int(ys[0] + 0.5 * (ys[-1] - ys[0])):] = 0          # head only (claws and toes are dark too)
+    dark[int(ys[0] + head_frac * (ys[-1] - ys[0])):] = 0    # head only (claws and toes are dark too)
     n, lab, st, cen = cv2.connectedComponentsWithStats(dark, connectivity=8)
     comps = sorted(range(1, n), key=lambda i: -st[i, cv2.CC_STAT_AREA])
     p1, p2 = sorted(comps[:2], key=lambda i: cen[i][0])
@@ -43,7 +43,7 @@ def dark_parts(rgb, a):
     ear_l = max((i for i in rest if cen[i][0] < x_lo + 10), key=lambda i: st[i, cv2.CC_STAT_AREA])
     ear_r = max((i for i in rest if cen[i][0] > x_hi - 10), key=lambda i: st[i, cv2.CC_STAT_AREA])
     mid = [i for i in rest if x_lo < cen[i][0] < x_hi and i not in (ear_l, ear_r)]
-    nose = max(mid, key=lambda i: st[i, cv2.CC_STAT_AREA])
+    nose = max(mid, key=lambda i: st[i, cv2.CC_STAT_AREA]) if head_frac <= 0.5 else min(mid, key=lambda i: cen[i][1])   # head-only pictures: the nose is above an open mouth
     return {"patch_l": lab == p1, "patch_r": lab == p2, "ear_l": lab == ear_l, "ear_r": lab == ear_r, "nose": lab == nose,
             "cen": {"ear_l": cen[ear_l], "ear_r": cen[ear_r], "nose": cen[nose]}}
 
@@ -154,6 +154,39 @@ def main():
     save("body.png", tint(base, A), A * (1 - cut))
     save("idle_full.png", tint(base, A), A)
 
+    # ---- angry idle: four heads from the angry sheet (eyes open, half, closed, mouth open), sized and placed on the idle body
+    angry = None
+    heads_file = ROOT / "art" / "idle" / "angry_heads.png"
+    if heads_file.exists():
+        heads = cs.cut_figures_alpha(heads_file, 12, "ANGRY", log, rows=2)
+        hh = cs.head_height(A)
+        ref_pts = np.array([parts["cen"][k] for k in ("ear_l", "ear_r", "nose")], np.float32)
+        ref_d = float(np.linalg.norm(ref_pts[0] - ref_pts[1]))
+        neck = hh[1] if hh else int(ref_pts[2][1] + 0.5 * ref_d)
+        yy = np.arange(H, dtype=np.float32)[:, None]
+        head_fade = np.clip((neck + 22 - yy) / 26.0, 0, 1)          # the head picture fades out across the neck
+        body_keep = np.clip((yy - (neck - 30)) / 5.0, 0, 1)        # the body picture without its own head
+        save("body_nohead.png", tint(base, A), A * (1 - cut) * body_keep)
+        angry = {"body": "rig_v3/body_nohead.png"}
+        def head_box(al, rows):      # left, right and top of the head outline (ears included)
+            m = al[:rows] > 0.5
+            xs, ys = np.flatnonzero(m.any(0)), np.flatnonzero(m.any(1))
+            return float(xs[0]), float(xs[-1]), float(ys[0])
+        rl, rr, rt = head_box(A, neck)
+        for key, idx in (("open", 0), ("half", 2), ("closed", 1), ("talk", 8)):
+            rgb, a, _ = heads[idx]
+            hl, hr, ht = head_box(a, int(0.72 * a.shape[0]))
+            k = (rr - rl) / (hr - hl)                                # same head width as the idle head
+            size = (max(1, round(a.shape[1] * k)), max(1, round(a.shape[0] * k)))
+            rgb2, a2 = cv2.resize(rgb, size, interpolation=cv2.INTER_AREA), cv2.resize(a, size, interpolation=cv2.INTER_AREA)
+            off = ((rl + rr) / 2 - k * (hl + hr) / 2, rt - k * ht)   # same centre line, same top of the head
+            C, Al = on_canvas(rgb2, a2, W, H, int(round(off[0])), int(round(off[1])))
+            st = cs.fur_stats(C, Al)
+            C = cs.colour_match(C, Al, float(np.clip(ref_h - st[0], -8, 8)), float(np.clip(ref_s / st[1], 0.80, 1.10))) if st else C
+            save(f"angry_{key}.png", C, Al * head_fade)
+            angry[key] = f"rig_v3/angry_{key}.png"
+            print(f"  angry head '{key}': scaled x{k:.3f}, placed at ({off[0]:+.0f}, {off[1]:+.0f})")
+
     feet = cs.feet_row(base, A)
     radius = cs.head_radius(base, A)
     char = json.loads(cs.CHAR_JSON.read_text(encoding="utf-8"))
@@ -170,6 +203,8 @@ def main():
         "note": "Art v3 idle. Draw order: tail, ear_l, ear_r, body, overlays. The tail is on the left, so tailSign is -1. "
                 "Blink and mouth overlays are soft-edged patches cut from the other idle drawings.",
     }
+    if angry:
+        char["rig"]["angry"] = angry
     cs.write_character(char)
     print(f"rig: {W}x{H}, feet row {feet}, head radius {radius:.1f}, scale {char['rig']['scale']}, pivots {pivots}")
     print(f"colour: hue {mh:.1f} sat {ms:.3f} -> shift {dh:+.1f} deg, sat x{ks:.2f}")

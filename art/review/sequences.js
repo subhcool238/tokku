@@ -9,7 +9,7 @@
   let speed = 1;
 
   // ---- images
-  const files = new Set([...Object.values(char.rig.layers), ...Object.values(char.rig.overlays)]);
+  const files = new Set([...Object.values(char.rig.layers), ...Object.values(char.rig.overlays), ...Object.values(char.rig.angry || {})]);
   Object.values(char.poses).forEach(p => { if (!p.legacy) files.add(p.file); });
   const images = {};
   let failed = [];
@@ -85,6 +85,8 @@
     'Annoyed 1': () => ch.annoyed(1), 'Annoyed 2': () => ch.annoyed(2), 'Annoyed 3': () => ch.annoyed(3),
     'Celebrate': () => ch.celebrate(), 'Rest (break)': () => ch.rest(), 'Stretch up': () => ch.stretchUp(),
     'Sleep': () => ch.sleep(), 'Wake': () => ch.wake(), 'Face away (Quiet)': () => ch.faceAway(), 'Face back': () => ch.faceBack(),
+    'Angry idle (blink, tail)': () => { ch.forceAngry = !ch.forceAngry; ch.face = ch.forceAngry ? 'angry' : 'normal'; ch.idle(); },
+    'Angry walk on the spot': async () => { await ch.walkInPlace(1, 200, 'angry'); setTimeout(() => ch.walkDone(), 4000 / speed); },
     'Talk (mouth)': () => { ch.talk(true); setTimeout(() => ch.talk(false), 2500 / speed); },
     'Blink': () => { ch.blinkClock = 0; },
     'Idle: happy tail wag': () => { ch.idle(); ch.setMood('happy'); }, 'Idle: calm tail': () => { ch.idle(); ch.setMood('calm'); },

@@ -556,6 +556,68 @@
      "reason": "left row, mirrored right row is used instead"
     }
    ]
+  },
+  "W02": {
+   "file": "W02_walk_angry.png",
+   "layout": "2 rows of 6 figures",
+   "rows": 2,
+   "note": "Angry walk (13 Oct), same layout as W01. Row 1 faces right and is used; walking left is the mirrored row.",
+   "frames": [
+    {
+     "name": "walka_stand",
+     "use": true
+    },
+    {
+     "name": "walka_1",
+     "use": true
+    },
+    {
+     "name": "walka_2",
+     "use": true
+    },
+    {
+     "name": "walka_3",
+     "use": true
+    },
+    {
+     "name": "walka_4",
+     "use": true
+    },
+    {
+     "name": "walka_5",
+     "use": true
+    },
+    {
+     "name": "walka_left_1",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walka_left_2",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walka_left_3",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walka_left_4",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walka_left_5",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    },
+    {
+     "name": "walka_left_6",
+     "use": false,
+     "reason": "left row, mirrored right row is used instead"
+    }
+   ]
   }
  },
  "derived": [

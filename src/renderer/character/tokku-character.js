@@ -58,6 +58,7 @@
       this.sleeping = false; this.zs = []; this.zClock = 0;
       this.walk = null; this.mode = 'idle';
       this.minimalMotion = false; // focus sessions: fewer ear twitches, no extra movement
+      this.face = 'normal';       // 'angry': the idle shows the angry head (own blink and mouth) and a bristling tail
       this.faceSide = null;       // 'left' or 'right': poses drawn looking the other way are mirrored. null = as drawn
       this.shadowTarget = 1; this.shadowA = 1;   // ground shadow, faded out while he is carried
       this.varietyClock = 40 + Math.random() * 50;   // idle variety (a thought, a look around), never while focusing
@@ -157,16 +158,17 @@
     }
 
     // The desktop window moves, so he walks on the spot: turn to the side and step. walkDone() turns him back.
-    async walkInPlace(dir, speed = W_SPEED) {
+    async walkInPlace(dir, speed = W_SPEED, set = null) {      // set 'angry': the angry walk frames
       const tk = this._begin(); this.sleeping = false; this.mode = 'walking'; this.leanTarget = 0;
       if (!await this.turnTo(dir * 90, tk)) return false;
-      this.yaw = dir * 90; this.walk = { inPlace: true, dir, v: speed, dist: 0, frame: -1 };
+      const S = (set && this.c.walk[set]) || this.c.walk;
+      this.yaw = dir * 90; this.walk = { inPlace: true, dir, v: speed, dist: 0, frame: -1, frames: S.right, stop: S.stop };
       return true;
     }
     async walkDone() {
-      const dir = this.walk ? this.walk.dir : Math.sign(this.yaw) || 1;
+      const dir = this.walk ? this.walk.dir : Math.sign(this.yaw) || 1, stop = (this.walk && this.walk.stop) || this.c.walk.stop || [];
       const tk = this._begin(); this.mode = 'walking';
-      for (const n of this.c.walk.stop || []) { this.pose(n, 80, dir < 0, true); await this.wait(130); if (!this._alive(tk)) return false; }
+      for (const n of stop) { this.pose(n, 80, dir < 0, true); await this.wait(130); if (!this._alive(tk)) return false; }
       this.setVisual({ type: 'ring', idx: this.ringIdx(dir * 90) }, 100);
       if (!await this.turnTo(0, tk)) return false;
       this.rig(150); this.mode = 'idle'; return true;
@@ -273,7 +275,8 @@
       this.shadowA += (this.shadowTarget - this.shadowA) * Math.min(1, dt * 12);
       this.lean += (this.leanTarget - this.lean) * Math.min(1, dt * 6);
       // tail mood blends smoothly
-      const target = MOODS[this.mood]; const k = Math.min(1, dt * 2.5);
+      const target = MOODS[this.face === 'angry' ? 'annoyed' : this.mood];      // an angry face always comes with an annoyed tail
+      const k = Math.min(1, dt * 2.5);
       for (const key in target) this.tailP[key] = lerp(this.tailP[key], target[key], k);
       this.tailPhase += dt * this.tailP.hz * TAU;
       // hop
@@ -303,7 +306,7 @@
         if (this.mouthClock <= 0) { this.mouth = this.mouth ? 0 : 1; this.mouthClock = this.mouth ? 0.09 + Math.random() * 0.08 : 0.07 + Math.random() * 0.1; if (this.mouth) this.squashV += 1.2; }
       }
       // idle variety: never during focus, Quiet mode, talking or any action
-      if (this.mode === 'idle' && this.visual.type === 'rig' && !this.minimalMotion && this.alphaTarget === 1 && !this.talking) {
+      if (this.mode === 'idle' && this.face !== 'angry' && this.visual.type === 'rig' && !this.minimalMotion && this.alphaTarget === 1 && !this.talking) {
         this.varietyClock -= dt;
         if (this.varietyClock <= 0) { this.varietyClock = 40 + Math.random() * 50; this._variety(); }
       }
@@ -316,8 +319,9 @@
     _walkStep(dt) {
       const w = this.walk, vmax = W_SPEED, acc = 360, dec = 320, W = this.c.walk, frames = W.right, per = W.framePx || 11;
       if (w.inPlace) {
-        w.dist += w.v * dt; const f = Math.floor(w.dist / per) % frames.length;
-        if (f !== w.frame) { w.frame = f; this.pose(frames[f], W.fadeMs || 0, w.dir < 0, true); }
+        const fr = w.frames || frames;
+        w.dist += w.v * dt; const f = Math.floor(w.dist / per) % fr.length;
+        if (f !== w.frame) { w.frame = f; this.pose(fr[f], W.fadeMs || 0, w.dir < 0, true); }
         return;
       }
       const rem = Math.abs(w.tx - this.x);
@@ -384,6 +388,12 @@
       let ang = tp.base + Math.sin(this.tailPhase) * tp.amp + (tp.jit ? (Math.sin(this.time * 113) * 0.5 + Math.sin(this.time * 71)) * tp.jit : 0);
       ang = clamp(ang, lim[0], lim[1]) * (R.tailSign || 1);    // tailSign -1: the tail is on the left of the body
       drawRot(g, I[R.layers.tail], P.tail, ang, tp.scale);
+      if (this.face === 'angry' && R.angry && I[R.angry.open]) {      // angry idle: the body without its head, plus one whole angry head
+        g.drawImage(I[R.angry.body], 0, 0);
+        const k = (this.talking && this.mouth) ? 'talk' : this.blink === 2 ? 'closed' : this.blink === 1 ? 'half' : 'open';
+        g.drawImage(I[R.angry[k]] || I[R.angry.open], 0, 0);
+        return this.buf;
+      }
       drawRot(g, I[R.layers.ear_l], P.earL, this.ear.l, 1);
       drawRot(g, I[R.layers.ear_r], P.earR, this.ear.r, 1);
       g.drawImage(I[R.layers.body], 0, 0);

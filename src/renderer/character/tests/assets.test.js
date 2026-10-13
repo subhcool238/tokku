@@ -50,7 +50,7 @@ function feetRow(png) {
 }
 
 const v3 = Object.entries(char.poses).filter(([, p]) => !p.legacy);
-check('there are 84 art v3 frames', v3.length === 84, String(v3.length));
+check('there are 90 art v3 frames', v3.length === 90, String(v3.length));
 
 // 1. every frame named in a sequence exists in character.json and on disk
 for (const [name, q] of Object.entries(char.sequences)) {

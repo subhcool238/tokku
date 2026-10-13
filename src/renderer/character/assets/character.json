@@ -141,7 +141,14 @@
    14
   ],
   "tailSign": -1,
-  "note": "Art v3 idle. Draw order: tail, ear_l, ear_r, body, overlays. The tail is on the left, so tailSign is -1. Blink and mouth overlays are soft-edged patches cut from the other idle drawings."
+  "note": "Art v3 idle. Draw order: tail, ear_l, ear_r, body, overlays. The tail is on the left, so tailSign is -1. Blink and mouth overlays are soft-edged patches cut from the other idle drawings.",
+  "angry": {
+   "body": "rig_v3/body_nohead.png",
+   "open": "rig_v3/angry_open.png",
+   "half": "rig_v3/angry_half.png",
+   "closed": "rig_v3/angry_closed.png",
+   "talk": "rig_v3/angry_talk.png"
+  }
  },
  "poses": {
   "walk_1": {
@@ -403,7 +410,7 @@
    "h": 328,
    "anchorX": 383,
    "feetY": 320,
-   "scale": 0.706
+   "scale": 0.707
   },
   "wake_yawn_lying": {
    "file": "v3/wake_yawn_lying.png",
@@ -807,6 +814,54 @@
    "feetY": 315,
    "scale": 1.639
   },
+  "walka_stand": {
+   "file": "v3/walka_stand.png",
+   "w": 304,
+   "h": 347,
+   "anchorX": 214,
+   "feetY": 339,
+   "scale": 1.546
+  },
+  "walka_1": {
+   "file": "v3/walka_1.png",
+   "w": 326,
+   "h": 342,
+   "anchorX": 234,
+   "feetY": 334,
+   "scale": 1.546
+  },
+  "walka_2": {
+   "file": "v3/walka_2.png",
+   "w": 338,
+   "h": 348,
+   "anchorX": 240,
+   "feetY": 339,
+   "scale": 1.546
+  },
+  "walka_3": {
+   "file": "v3/walka_3.png",
+   "w": 338,
+   "h": 341,
+   "anchorX": 248,
+   "feetY": 333,
+   "scale": 1.546
+  },
+  "walka_4": {
+   "file": "v3/walka_4.png",
+   "w": 329,
+   "h": 344,
+   "anchorX": 237,
+   "feetY": 336,
+   "scale": 1.546
+  },
+  "walka_5": {
+   "file": "v3/walka_5.png",
+   "w": 345,
+   "h": 345,
+   "anchorX": 254,
+   "feetY": 337,
+   "scale": 1.546
+  },
   "turn_210": {
    "file": "v3/turn_210.png",
    "w": 464,
@@ -1061,7 +1116,21 @@
   ],
   "framePx": 30,
   "fadeMs": 70,
-  "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. The frame advances every framePx screen pixels, with a short blend. Mirror for left."
+  "note": "From the detailed walk sheet (W01), right facing row: stride, passing, stride, passing. The frame advances every framePx screen pixels, with a short blend. Mirror for left.",
+  "angry": {
+   "right": [
+    "walka_2",
+    "walka_3",
+    "walka_5",
+    "walka_1"
+   ],
+   "start": [
+    "walka_stand"
+   ],
+   "stop": [
+    "walka_stand"
+   ]
+  }
  },
  "scaleNote": "Per-pose \"scale\" gives every frame the same head size. Measured by tools/cut_sprites.py as the biggest circle that fits in the head. Manual corrections: art/scale-overrides.json.",
  "sequences": {
