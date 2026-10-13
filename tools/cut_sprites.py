@@ -36,7 +36,7 @@ CHAR_JSON = ASSETS / "character.json"
 
 MODEL = "u2net"                      # compared with isnet-general-use on S01 and S06: fewer ragged bits in white face fur
 MARGIN = 6                           # transparent pixels kept around each trimmed frame
-AIRBORNE = {"joy_jump", "drag_grab", "drag_hang"}
+AIRBORNE = {"joy_jump", "drag_grab", "drag_hang", "draga_grab", "draga_hang"}
 WALK_LIKE = ("walk_", "walkd_", "walka_", "side_idle")   # anchor on the torso, not the feet, so the body does not jitter
 SCALE_FALLBACK = {"S07": "S06"}      # sheets with no measurable frame borrow the scale of another sheet
 HEAD_SHEETS = {"S05"}                # back views hide the eye patches: measure head height (top to neck) instead
@@ -56,7 +56,7 @@ SCALE_SPREAD = 0.05                  # a frame may differ this much from its she
 FACES_RIGHT = {"annoyed_question", "annoyed_mild", "annoyed_angry", "away_sigh", "accept_thumbs", "found_point", "break_sit_relaxed",
                "drag_sit", "joy_excited", "done_proud", "done_thumbs", "plead", "hopeful", "surprise_start", "surprise_strong",
                "sleepy_stand", "yawn_sit", "drowsy_sit", "sleep_curl", "wake_yawn_lying", "stretch_up", "break_stretch", "break_yawn",
-               "inspect_low", "think_chin", "notice", "joy_wink_thumbs"}
+               "inspect_low", "think_chin", "notice", "joy_wink_thumbs", "draga_sit", "draga_hang"}
 FACES_LEFT = {"away_look_away"}
 
 YAW = {"turn_000": 0, "turn_030": 30, "turn_060": 60, "turn_090": 90, "turn_120": 120, "turn_150": 150,
@@ -579,6 +579,8 @@ SEQUENCES = {
     "annoyed_3": seq(("annoyed_angry", 1800), end="rig"),
     "drag_start": seq(("drag_grab", 120), ("drag_hang", 0), hold="drag_hang"),
     "drag_end": seq(("drag_sit", 1000)),      # one landing pose only
+    "drag_start_angry": seq(("draga_grab", 120), ("draga_hang", 0), hold="draga_hang"),      # from the second drag within an hour
+    "drag_end_angry": seq(("draga_sit", 1000)),
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),
     "quiet_off": seq(("quiet_back_sit", 250), after="turn:0", end="rig"),
     "welcome_back": seq(("wave_hello", 1700), end="rig"),       # a normal wave

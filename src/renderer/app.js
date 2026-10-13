@@ -95,7 +95,9 @@
   window.addEventListener('mousemove', (e) => {
     if (press && !dragging && Math.hypot(e.screenX - press.x, e.screenY - press.y) > 6 && !brain.quiet && brain.state !== 'meal') {
       // works at any moment, also while he is walking back or still falling: this drag simply takes over
-      dragging = true; moveGen++; moving = false; ui.hide(); showHover(false); guard.dragStart(); ch.shadowTarget = 0; ch.dragStart();
+      dragging = true; moveGen++; moving = false; ui.hide(); showHover(false); guard.dragStart(); ch.shadowTarget = 0;
+      dragTimes = dragTimes.filter(t => performance.now() - t < 3600000);      // annoyance resets after an hour
+      ch.dragStart(dragTimes.length >= 1);                                     // from the second drag he is angry already in the air
     }
     if (dragging) { guard.drag(e.screenX - press.x, e.screenY - press.y); ch.dragMove(e.movementX * 60); return; }
     const el = document.elementFromPoint(e.clientX, e.clientY);
@@ -147,9 +149,9 @@
     if (want === place) return;
     if (want === 'home' && ch.mode !== 'idle' && ch.mode !== 'quiet') return;   // let him finish his thumbs up first
     const dir = Math.sign(targetX(want) - window.screenX);
-    if (!dir) { place = want; return; }
+    if (!dir) { place = want; ch.forceAngry = false; return; }
     moving = true; ui.hide(); showHover(false);
-    const angry = want === 'center' || (place === 'dropped' && dragTimes.length >= 2);      // he stomps over, or stomps back
+    const angry = want === 'center' || place === 'dropped';       // he stomps over, or stomps back after a drop
     ch.forceAngry = angry; ch.face = angry ? 'angry' : ch.face;
     ch.walkInPlace(dir, WALK_SPEED, angry ? 'angry' : null);
     guard.walk(want);
@@ -161,8 +163,8 @@
       const now = performance.now();
       dragTimes = dragTimes.filter(t => now - t < 3600000); dragTimes.push(now);      // annoyance resets after an hour
       ch.shadowTarget = 1; place = 'dropped';
-      await ch.dragEnd(!(dragTimes.length >= 2 && !brain.quiet)); if (gen !== moveGen) return;
-      if (dragTimes.length >= 2 && !brain.quiet) { await ch.annoyed(Math.min(3, dragTimes.length)); if (gen !== moveGen) return; }
+      ch.forceAngry = true; ch.face = 'angry';                    // no smile after being dropped: angry idle while he complains, angry walk back
+      await ch.dragEnd(true, dragTimes.length >= 2); if (gen !== moveGen) return;
       brain.say(dragTimes.length >= 2 ? 'dragged_again' : 'dragged');
       holdUntil = performance.now() + 2200; moving = false;
       return;

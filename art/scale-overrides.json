@@ -59,5 +59,21 @@
  "yawn_sit": {
   "scale": 0.75,
   "why": "head touches the body or a paw, so the automatic measure read it too big; set by eye"
+ },
+ "draga_grab": {
+  "scale": 0.72,
+  "why": "this sheet is drawn with a bigger head for its body; halfway between matching heads and matching body size, one value for all four"
+ },
+ "draga_hang": {
+  "scale": 0.72,
+  "why": "this sheet is drawn with a bigger head for its body; halfway between matching heads and matching body size, one value for all four"
+ },
+ "draga_land": {
+  "scale": 0.72,
+  "why": "this sheet is drawn with a bigger head for its body; halfway between matching heads and matching body size, one value for all four"
+ },
+ "draga_sit": {
+  "scale": 0.72,
+  "why": "this sheet is drawn with a bigger head for its body; halfway between matching heads and matching body size, one value for all four"
  }
 }

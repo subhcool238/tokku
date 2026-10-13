@@ -85,6 +85,7 @@
     'Annoyed 1': () => ch.annoyed(1), 'Annoyed 2': () => ch.annoyed(2), 'Annoyed 3': () => ch.annoyed(3),
     'Celebrate': () => ch.celebrate(), 'Rest (break)': () => ch.rest(), 'Stretch up': () => ch.stretchUp(),
     'Sleep': () => ch.sleep(), 'Wake': () => ch.wake(), 'Face away (Quiet)': () => ch.faceAway(), 'Face back': () => ch.faceBack(),
+    'Angry drag and drop': async () => { await ch.dragStart(true); setTimeout(() => ch.dragEnd(true, true), 1800 / speed); },
     'Angry idle (blink, tail)': () => { ch.forceAngry = !ch.forceAngry; ch.face = ch.forceAngry ? 'angry' : 'normal'; ch.idle(); },
     'Angry walk on the spot': async () => { await ch.walkInPlace(1, 200, 'angry'); setTimeout(() => ch.walkDone(), 4000 / speed); },
     'Talk (mouth)': () => { ch.talk(true); setTimeout(() => ch.talk(false), 2500 / speed); },

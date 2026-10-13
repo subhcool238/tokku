@@ -337,7 +337,7 @@ window.TOKKU_CHARACTER = {
    "h": 388,
    "anchorX": 272,
    "feetY": 378,
-   "scale": 0.732,
+   "scale": 0.731,
    "faces": "right"
   },
   "sleep_breathe_in": {
@@ -346,7 +346,7 @@ window.TOKKU_CHARACTER = {
    "h": 424,
    "anchorX": 293,
    "feetY": 416,
-   "scale": 0.714
+   "scale": 0.713
   },
   "sleep_breathe_out": {
    "file": "v3/sleep_breathe_out.png",
@@ -354,7 +354,7 @@ window.TOKKU_CHARACTER = {
    "h": 408,
    "anchorX": 288,
    "feetY": 399,
-   "scale": 0.757
+   "scale": 0.756
   },
   "sleep_ear_twitch": {
    "file": "v3/sleep_ear_twitch.png",
@@ -362,7 +362,7 @@ window.TOKKU_CHARACTER = {
    "h": 430,
    "anchorX": 290,
    "feetY": 422,
-   "scale": 0.718
+   "scale": 0.717
   },
   "sleep_tail_curl": {
    "file": "v3/sleep_tail_curl.png",
@@ -370,7 +370,7 @@ window.TOKKU_CHARACTER = {
    "h": 413,
    "anchorX": 282,
    "feetY": 404,
-   "scale": 0.761
+   "scale": 0.76
   },
   "wake_lying": {
    "file": "v3/wake_lying.png",
@@ -403,7 +403,7 @@ window.TOKKU_CHARACTER = {
    "h": 383,
    "anchorX": 288,
    "feetY": 373,
-   "scale": 0.73
+   "scale": 0.729
   },
   "wake_peek": {
    "file": "v3/wake_peek.png",
@@ -411,7 +411,7 @@ window.TOKKU_CHARACTER = {
    "h": 328,
    "anchorX": 383,
    "feetY": 320,
-   "scale": 0.707
+   "scale": 0.706
   },
   "wake_yawn_lying": {
    "file": "v3/wake_yawn_lying.png",
@@ -547,7 +547,7 @@ window.TOKKU_CHARACTER = {
    "h": 671,
    "anchorX": 274,
    "feetY": 693,
-   "scale": 0.811,
+   "scale": 0.81,
    "airPx": 30
   },
   "joy_wink_thumbs": {
@@ -862,6 +862,42 @@ window.TOKKU_CHARACTER = {
    "anchorX": 254,
    "feetY": 337,
    "scale": 1.546
+  },
+  "draga_grab": {
+   "file": "v3/draga_grab.png",
+   "w": 520,
+   "h": 642,
+   "anchorX": 248,
+   "feetY": 650,
+   "scale": 0.72,
+   "airPx": 18
+  },
+  "draga_hang": {
+   "file": "v3/draga_hang.png",
+   "w": 418,
+   "h": 651,
+   "anchorX": 114,
+   "feetY": 654,
+   "scale": 0.72,
+   "airPx": 12,
+   "faces": "right"
+  },
+  "draga_land": {
+   "file": "v3/draga_land.png",
+   "w": 613,
+   "h": 478,
+   "anchorX": 412,
+   "feetY": 470,
+   "scale": 0.72
+  },
+  "draga_sit": {
+   "file": "v3/draga_sit.png",
+   "w": 492,
+   "h": 652,
+   "anchorX": 314,
+   "feetY": 644,
+   "scale": 0.72,
+   "faces": "right"
   },
   "turn_210": {
    "file": "v3/turn_210.png",
@@ -1362,6 +1398,27 @@ window.TOKKU_CHARACTER = {
    "frames": [
     {
      "pose": "drag_sit",
+     "ms": 1000
+    }
+   ]
+  },
+  "drag_start_angry": {
+   "frames": [
+    {
+     "pose": "draga_grab",
+     "ms": 120
+    },
+    {
+     "pose": "draga_hang",
+     "ms": 0
+    }
+   ],
+   "hold": "draga_hang"
+  },
+  "drag_end_angry": {
+   "frames": [
+    {
+     "pose": "draga_sit",
      "ms": 1000
     }
    ]

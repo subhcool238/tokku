@@ -618,6 +618,31 @@
      "reason": "left row, mirrored right row is used instead"
     }
    ]
+  },
+  "S16A": {
+   "file": "S16A_dragged_angry.png",
+   "layout": "4 figures, 1 row",
+   "note": "Angry drag and drop (13 Oct), same order as S16. Used from the second drag within an hour.",
+   "frames": [
+    {
+     "name": "draga_grab",
+     "use": true,
+     "airborne": true
+    },
+    {
+     "name": "draga_hang",
+     "use": true,
+     "airborne": true
+    },
+    {
+     "name": "draga_land",
+     "use": true
+    },
+    {
+     "name": "draga_sit",
+     "use": true
+    }
+   ]
   }
  },
  "derived": [

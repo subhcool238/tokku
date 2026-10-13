@@ -236,14 +236,14 @@
       this.setMood('calm'); this.mode = 'idle'; return true;
     }
     // Dragging: the host calls dragStart on mouse down, dragMove(vx) while moving, dragEnd on release.
-    async dragStart() {
+    async dragStart(angry = false) {
       const tk = this._begin(); this.mode = 'dragged'; this.sleeping = false; this.talk(false);
-      return this._run('drag_start', tk);
+      return this._run(angry && this.c.sequences.drag_start_angry ? 'drag_start_angry' : 'drag_start', tk);
     }
     dragMove(vx) { if (this.mode === 'dragged') this.leanTarget = clamp(-vx * 0.0005, -0.16, 0.16); }   // sways a few degrees with mouse speed
-    async dragEnd(toIdle = true) {      // toIdle false: another pose follows at once, so the idle is not flashed in between
+    async dragEnd(toIdle = true, angry = false) {      // toIdle false: another pose follows at once, so the idle is not flashed in between
       const tk = this._begin(); this.mode = 'landing'; this.leanTarget = 0;
-      if (!await this._run('drag_end', tk)) return false;
+      if (!await this._run(angry && this.c.sequences.drag_end_angry ? 'drag_end_angry' : 'drag_end', tk)) return false;
       if (toIdle) { this.rig(150); this.mode = 'idle'; }
       return true;
     }
