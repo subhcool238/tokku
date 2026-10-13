@@ -30,15 +30,21 @@ function shouldPing(s) {
 }
 function awayText(minutes) { return `Your computer has been idle for ${minutes} minutes. Tokku is waiting.`; }
 
-function send(topic, text) {
+// Sends the fixed text, with a picture of Tokku peeking in (a drawing of the character, nothing from the PC).
+// picture: 'away' or 'hello' (files in src/main/phone). If the picture is missing, the text goes alone.
+function send(topic, text, picture) {
   return new Promise((resolve) => {
     if (!/^tokku-[A-Za-z0-9_-]{20,}$/.test(topic || '')) return resolve({ ok: false, error: 'no topic' });
-    const req = https.request({ host: HOST, path: '/' + topic, method: 'POST', timeout: 8000,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', Title: 'Tokku', Tags: 'eyes' } },
+    let image = null;
+    try { if (picture) image = fs.readFileSync(path.join(__dirname, 'phone', picture + '.png')); } catch { image = null; }
+    const headers = { Title: 'Tokku', Tags: 'eyes' };
+    if (image) Object.assign(headers, { Message: text, Filename: 'tokku.png', 'Content-Type': 'image/png', 'Content-Length': image.length });
+    else headers['Content-Type'] = 'text/plain; charset=utf-8';
+    const req = https.request({ host: HOST, path: '/' + topic, method: image ? 'PUT' : 'POST', timeout: 15000, headers },
       (res) => { res.resume(); resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, error: 'ntfy answered ' + res.statusCode }); });
     req.on('timeout', () => req.destroy(new Error('timed out')));
     req.on('error', (err) => resolve({ ok: false, error: err.message }));      // offline: the ping is dropped, a late one is useless
-    req.end(text);
+    req.end(image || text);
   });
 }
 

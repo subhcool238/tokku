@@ -28,7 +28,7 @@ async function phoneSetup() {
       '\n\nThe topic is copied to your clipboard, so you can send it to your phone.\n3. Then choose "Send a test message" in the Tokku tray menu.\n\nKeep the topic private: anyone who knows it can read these messages. Do not show it in your video.' });
 }
 async function phoneTest() {
-  const r = await phone.send(link.topic, 'Test from Tokku. Your phone link works.');
+  const r = await phone.send(link.topic, 'Hi, it is Tokku. Your phone link works.', 'hello');
   dialog.showMessageBox({ type: r.ok ? 'info' : 'warning', title: 'Tokku phone link', buttons: ['OK'],
     message: r.ok ? 'Test message sent. It should reach your phone within a few seconds.' : 'The test message could not be sent (' + r.error + '). Check your internet connection.' });
 }
@@ -41,7 +41,7 @@ function checkAway(r) {
   if (awaySec < 30 && !r.locked) { away.pinged = false; return; }
   const ok = phone.shouldPing({ linked: !!link.topic, on: link.on, alreadyPinged: away.pinged, awaySec, afterSec: awayAfterSec(),
     quiet: state.quiet, paused: state.pausedUntil > now, brainState: away.brainState });
-  if (ok) { away.pinged = true; phone.send(link.topic, phone.awayText(Math.round(awaySec / 60))); }
+  if (ok) { away.pinged = true; phone.send(link.topic, phone.awayText(Math.round(awaySec / 60)), 'away'); }
 }
 ipcMain.on('tokku:state', (e, s) => { away.brainState = String(s).slice(0, 20); });
 const state = { interview: false, dnd: false, pausedUntil: 0, pausesThisHour: [], micCamera: true, debug: false, sensed: [], quiet: false };
