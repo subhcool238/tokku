@@ -3,7 +3,7 @@
    - NOT always on top: other windows cover him. He comes forward only when the renderer asks.
    - click-through everywhere except on the character and his buttons
    - the renderer is sandboxed, has no network and no permissions, and is served from a private app:// scheme */
-const { app, BrowserWindow, Tray, Menu, protocol, session, screen, ipcMain, nativeImage, globalShortcut, dialog, clipboard } = require('electron');
+const { app, BrowserWindow, Tray, Menu, protocol, session, screen, ipcMain, nativeImage, globalShortcut, dialog, clipboard, net } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -16,7 +16,7 @@ const WIN = { width: 340, height: 452, margin: 0 };      // he stands in the ver
 let win = null, tray = null;
 const sense = require('./guard-sense');
 const phone = require('./guard-phone');
-let link = { on: true, topic: null };                // phone link, loaded when the app is ready
+let link = { on: true, topic: null, partner: null };                // phone link, loaded when the app is ready
 const away = { lockedAt: 0, pinged: false, testTimer: false, brainState: 'idle' };
 const notion = require('./guard-notion');
 const pin = require('./guard-pin');
@@ -28,7 +28,7 @@ const nstatus = { count: 0, top: null, error: null };
 // ---------- small settings window: Notion link, partner PIN, turning Tokku off ----------
 function openSettings(page) {
   if (setWin && !setWin.isDestroyed()) setWin.close();
-  const w = setWin = new BrowserWindow({ width: 520, height: page === 'notion' ? 600 : 560, title: 'Tokku', resizable: false, maximizable: false, minimizable: false,
+  const w = setWin = new BrowserWindow({ width: 520, height: page === 'notion' ? 600 : page === 'pin' ? 690 : 560, title: 'Tokku', resizable: false, maximizable: false, minimizable: false,
     autoHideMenuBar: true, backgroundColor: '#14161f', alwaysOnTop: true,
     webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload-settings.js') } });
   setWin.setMenu(null);
@@ -67,7 +67,22 @@ ipcMain.handle('settings:pin-set', (e, next, current) => {
   if (pin.isSet() && !pin.check(current)) return { ok: false, error: 'The current PIN is wrong.' };
   return pin.set(next) ? { ok: true } : { ok: false, error: 'The PIN must be 4 to 6 digits.' };
 });
-let wrongPins = [], emergencyFrom = 0;
+let wrongPins = [], emergencyFrom = 0, lastAsk = 0;
+// The partner's phone: its own private topic. Shown only on the PIN page, which the partner has in front of them.
+ipcMain.handle('settings:partner-topic', (e, create) => {
+  if (!fromSettings(e)) return null;
+  if (create && !link.partner) { link.partner = phone.newTopic(); phone.save(link); }
+  return { topic: link.partner || null };
+});
+ipcMain.handle('settings:ask-unlock', async (e) => {
+  if (!fromSettings(e)) return { ok: false, error: 'not allowed' };
+  if (!link.partner) return { ok: false, error: 'No partner phone is connected. Set it up under Partner PIN.' };
+  if (Date.now() - lastAsk < 5 * 60000) return { ok: false, error: 'Already asked. You can ask again in a few minutes.' };
+  const r = await phone.send(link.partner, phone.UNLOCK_TEXT, 'hello');
+  if (r.ok) lastAsk = Date.now();
+  return r.ok ? { ok: true } : { ok: false, error: 'Could not reach your partner (' + r.error + ').' };
+});
+ipcMain.handle('settings:can-ask', (e) => (fromSettings(e) ? { can: !!link.partner } : null));
 ipcMain.handle('settings:quit', (e, tried) => {
   if (!fromSettings(e)) return { ok: false, error: 'not allowed' };
   const now = Date.now(); wrongPins = wrongPins.filter(t => now - t < 60000);
@@ -227,7 +242,12 @@ function createWindow() {
         const wrong = await setWin.webContents.executeJavaScript("window.settings.quit('0000')");
         const early = await setWin.webContents.executeJavaScript("window.settings.emergencyQuit('testing')");
         probe.push('quit with no PIN set and a guess: ' + JSON.stringify(wrong) + ' ; emergency without holding: ' + JSON.stringify(early));
+        probe.push('ask partner with no partner phone: ' + JSON.stringify(await setWin.webContents.executeJavaScript("window.settings.askUnlock()")) + ' ; ask button hidden: ' + await setWin.webContents.executeJavaScript("document.getElementById('quit-ask').hidden"));
         setWin.close();
+        send({ type: 'activity', category: 'work', app: null, idle: 0, locked: false, dt: 1, reasons: [], online: false }); await wait(300);
+        const dotOff = await js("!document.getElementById('offline').hidden");
+        send({ type: 'activity', category: 'work', app: null, idle: 0, locked: false, dt: 1, reasons: [], online: true }); await wait(300);
+        probe.push('offline dot: shown when offline ' + dotOff + ', hidden when online ' + await js("document.getElementById('offline').hidden"));
         send({ type: 'demo', on: true }); await wait(400);
         probe.push('demo on: focus ' + await js("window.__tokku.brain.o.focusMin") + ' min, nudge after ' + await js("window.__tokku.brain.o.nudgeAfterSec") + ' s');
         send({ type: 'demo', on: false }); await wait(400);
@@ -328,7 +348,7 @@ function buildTray() {
       { label: 'Tell my phone when I am away 30 min', type: 'checkbox', enabled: !!link.topic, checked: !!link.topic && link.on, click: (i) => { link.on = i.checked; phone.save(link); } },
       { label: 'Send a test message', enabled: !!link.topic, click: () => phoneTest() },
       { label: 'Testing: away after 2 minutes', type: 'checkbox', checked: away.testTimer, click: (i) => { away.testTimer = i.checked; } },
-      { label: 'Make a new topic', enabled: !!link.topic, click: () => { link.topic = null; phoneSetup(); } },
+      { label: 'Make a new topic', enabled: !!link.topic, click: () => { link.topic = null; phoneSetup(); } },      // the partner topic is kept
     ] },
     { label: 'Show what Tokku senses (debug line)', type: 'checkbox', checked: state.debug, click: (i) => { state.debug = i.checked; send({ type: 'debug', on: state.debug }); } },
     { label: nlink.token ? 'Notion: connected (change)' : 'Notion: connect my tasks', click: () => openSettings('notion') },
@@ -372,7 +392,7 @@ else {
       state.desktop = !!r.desktop; applyTop();
       if (process.env.TOKKU_SHOT) return;                           // the self-test acts out its own activity
       state.sensed = r.reasons; updateQuiet();
-      send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons, desktop: !!r.desktop });
+      send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons, desktop: !!r.desktop, online: net.isOnline() });
       checkAway(r);
       if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes, long: r.backMinutes * 60 >= awayAfterSec() });
     }, { micCamera: () => state.micCamera });

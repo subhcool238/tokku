@@ -29,6 +29,10 @@
     const msg = $('pin-msg'), st = await api.pinStatus();
     $('pin-current-row').hidden = !st.set;
     ['pin-current', 'pin-new', 'pin-again'].forEach(id => digits($(id)));
+    const showPartner = (t) => { $('partner-none').hidden = !!t; $('partner-has').hidden = !t; if (t) $('partner-topic').value = t; };
+    showPartner((await api.partnerTopic(false)).topic);
+    $('partner-make').addEventListener('click', async () => showPartner((await api.partnerTopic(true)).topic));
+    $('partner-topic').addEventListener('focus', (e) => e.target.select());
     $('pin-save').addEventListener('click', async () => {
       const a = $('pin-new').value, b = $('pin-again').value;
       if (!/^\d{4,6}$/.test(a)) return say(msg, 'The PIN must be 4 to 6 digits.', false);
@@ -45,6 +49,13 @@
     digits($('quit-pin'));
     const go = async () => { const r = await api.quit($('quit-pin').value); if (!r.ok) { $('quit-pin').value = ''; say(msg, r.error, false); } };
     $('quit-go').addEventListener('click', go);
+    $('quit-ask').hidden = !(await api.canAsk()).can;
+    $('quit-ask').addEventListener('click', async () => {
+      $('quit-ask').disabled = true;
+      const r = await api.askUnlock();
+      say(msg, r.ok ? 'Your partner has been asked. Wait for the PIN.' : r.error, r.ok);
+      if (!r.ok) $('quit-ask').disabled = false;
+    });
     $('quit-pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
 
     // emergency exit: hold for 30 seconds (Guard measures the time too), then a reason

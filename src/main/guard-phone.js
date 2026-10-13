@@ -15,12 +15,14 @@ const file = () => path.join(app.getPath('userData'), 'phone-link.json');
 function load() {
   try {
     const j = JSON.parse(fs.readFileSync(file(), 'utf8'));
-    return { on: j.on !== false, topic: j.topic ? safeStorage.decryptString(Buffer.from(j.topic, 'base64')) : null };
-  } catch { return { on: true, topic: null }; }
+    const open = (v) => (v ? safeStorage.decryptString(Buffer.from(v, 'base64')) : null);
+    return { on: j.on !== false, topic: open(j.topic), partner: open(j.partner) };
+  } catch { return { on: true, topic: null, partner: null }; }
 }
 function save(s) {
   if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows encryption is not available');
-  fs.writeFileSync(file(), JSON.stringify({ on: s.on, topic: s.topic ? safeStorage.encryptString(s.topic).toString('base64') : null }));
+  const seal = (v) => (v ? safeStorage.encryptString(v).toString('base64') : null);
+  fs.writeFileSync(file(), JSON.stringify({ on: s.on, topic: seal(s.topic), partner: seal(s.partner) }));
 }
 function newTopic() { return 'tokku-' + crypto.randomBytes(18).toString('base64url'); }      // 24 random characters: nobody can guess it
 
@@ -28,6 +30,7 @@ function newTopic() { return 'tokku-' + crypto.randomBytes(18).toString('base64u
 function shouldPing(s) {
   return s.linked && s.on && !s.alreadyPinged && s.awaySec >= s.afterSec && !s.quiet && !s.paused && s.brainState !== 'meal' && s.brainState !== 'waking';
 }
+const UNLOCK_TEXT = 'Sanky wants to turn Tokku off. Share the PIN only if you agree.';      // fixed text, nothing about what he was doing
 function awayText(minutes) { return `Your computer has been idle for ${minutes} minutes. Tokku is waiting.`; }
 
 // Sends the fixed text, with a picture of Tokku peeking in (a drawing of the character, nothing from the PC).
@@ -48,4 +51,4 @@ function send(topic, text, picture) {
   });
 }
 
-module.exports = { load, save, newTopic, shouldPing, awayText, send };
+module.exports = { load, save, newTopic, shouldPing, awayText, send, UNLOCK_TEXT };

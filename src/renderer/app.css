@@ -39,6 +39,10 @@ button.primary { background: linear-gradient(180deg, rgba(255, 180, 78, .97), rg
 /* hover buttons: appear above his head only while the mouse is on him */
 #hover-bar { position: absolute; left: 215px; bottom: 258px; transform: translateX(-50%); width: max-content; z-index: 2; display: flex; gap: 7px; justify-content: center; animation: rise .18s ease-out; }
 
+/* offline dot: small amber dot beside his feet while there is no internet */
+#offline { position: absolute; left: 300px; bottom: 14px; width: 10px; height: 10px; border-radius: 50%; background: #ffb24a;
+  border: 2px solid rgba(20, 22, 34, .85); box-shadow: 0 0 0 1px rgba(255, 255, 255, .5), 0 0 8px rgba(255, 178, 74, .8); }
+
 #debug { position: absolute; left: 6px; right: 6px; top: 2px; font: 10.5px ui-monospace, Consolas, monospace; color: #fff; text-align: center;
   text-shadow: 0 1px 2px #000, 0 0 4px #000; white-space: nowrap; overflow: hidden; }
 

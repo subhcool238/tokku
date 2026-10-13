@@ -132,7 +132,8 @@
     }
     if (ev.type === 'activity') {
       idleSec = ev.idle;
-      lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.desktop ? ' | desktop in front' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
+      $('offline').hidden = ev.online !== false;
+      lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.desktop ? ' | desktop in front' : '') + (ev.online === false ? ' | OFFLINE' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
       // Watching a video means no mouse and no keyboard, so idle time must not end a distraction.
       // Only a very long idle (30 min: the video is playing to an empty chair) or a locked screen does.
       const there = !ev.locked && ev.idle < 1800;

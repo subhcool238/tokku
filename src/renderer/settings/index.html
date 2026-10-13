@@ -41,6 +41,14 @@
       <span class="spacer"></span>
       <button data-close>Close</button>
     </div>
+    <hr>
+    <h2>Partner's phone (optional)</h2>
+    <p class="fine">Lets the user send one message: "Sanky wants to turn Tokku off. Share the PIN only if you agree." Nothing else is ever sent.</p>
+    <div id="partner-none"><button id="partner-make">Connect partner's phone</button></div>
+    <div id="partner-has" hidden>
+      <p class="fine">On the partner's phone: install the free app <b>ntfy</b>, tap +, and subscribe to this topic. Keep it private.</p>
+      <input id="partner-topic" type="text" readonly>
+    </div>
     <p class="fine">Only a scrambled fingerprint of the PIN is stored, never the PIN itself. Your partner can only unlock. They never see what you were doing.</p>
   </section>
 
@@ -52,6 +60,7 @@
     <p class="msg" id="quit-msg"></p>
     <div class="row">
       <button class="primary" id="quit-go">Turn off</button>
+      <button id="quit-ask" hidden>Ask my partner</button>
       <span class="spacer"></span>
       <button data-close>Cancel</button>
     </div>

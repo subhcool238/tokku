@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('settings', {
   emergencyStart: () => ipcRenderer.invoke('settings:emergency-start'),
   emergencyStop: () => ipcRenderer.invoke('settings:emergency-stop'),
   emergencyQuit: (reason) => ipcRenderer.invoke('settings:emergency-quit', String(reason)),
+  partnerTopic: (create) => ipcRenderer.invoke('settings:partner-topic', !!create),
+  canAsk: () => ipcRenderer.invoke('settings:can-ask'),
+  askUnlock: () => ipcRenderer.invoke('settings:ask-unlock'),
   close: () => ipcRenderer.send('settings:close'),
 });
