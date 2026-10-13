@@ -323,6 +323,8 @@ function applyTop() {
 ipcMain.on('tokku:front', (e, on) => { state.front = !!on; applyTop(); });
 
 // ---------- tray ----------
+// Start with Windows. When Tokku runs from the project folder (not installed), Windows must be told which folder to start.
+const loginItem = () => (app.isPackaged ? {} : { path: process.execPath, args: [app.getAppPath()] });
 function mealNow() { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; }
 function setInterview(on) { state.interview = on; updateQuiet(); buildTray(); }
 function buildTray() {
@@ -341,8 +343,8 @@ function buildTray() {
     { label: 'Lunch', click: () => send({ type: 'meal', meal: 'lunch' }) },
     { label: 'Dinner', click: () => send({ type: 'meal', meal: 'dinner' }) },
     { type: 'separator' },
-    { label: 'Start with Windows', type: 'checkbox', enabled: app.isPackaged, checked: app.isPackaged && app.getLoginItemSettings().openAtLogin,
-      click: (i) => app.setLoginItemSettings({ openAtLogin: i.checked }) },
+    { label: 'Start with Windows', type: 'checkbox', checked: app.getLoginItemSettings(loginItem()).openAtLogin,
+      click: (i) => app.setLoginItemSettings(Object.assign({ openAtLogin: i.checked }, loginItem())) },
     { label: 'Phone link', submenu: [
       { label: link.topic ? 'Show the topic again' : 'Set up (connect my phone)', click: () => phoneSetup() },
       { label: 'Tell my phone when I am away 30 min', type: 'checkbox', enabled: !!link.topic, checked: !!link.topic && link.on, click: (i) => { link.on = i.checked; phone.save(link); } },
