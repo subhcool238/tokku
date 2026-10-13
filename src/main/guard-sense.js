@@ -30,12 +30,23 @@ function classify(title, owner) {
 }
 
 // "in use now" = any app entry whose LastUsedTimeStop is 0 (the same data that shows the mic icon in the taskbar)
+// Screen recorders use the microphone too, but recording your screen is not a call: these never cause Quiet mode.
+const RECORDERS = /ScreenSketch|XboxGamingOverlay|XboxGameBar|GamingApp|obs(64|32)?\.exe|obs-studio|sharex|camtasia|bandicam|screenrec|loom|clipchamp/i;
+// Reads the output of "reg query": a line with the app's key, then its value. Returns true if any app that is
+// not a screen recorder has LastUsedTimeStop = 0, which means "in use right now".
+function inUseFromReg(out) {
+  let app = '';
+  for (const line of String(out || '').split(/?
+/)) {
+    if (/^HKEY_/i.test(line)) app = line;
+    else if (/LastUsedTimeStop/.test(line) && /\s0x0\s*$/.test(line) && !RECORDERS.test(app)) return true;
+  }
+  return false;
+}
 function deviceInUse(kind) {
-  const key = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\' + kind;
+  const key = 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\' + kind;
   return new Promise((resolve) => {
-    execFile('reg', ['query', key, '/s', '/v', 'LastUsedTimeStop'], { windowsHide: true, timeout: 4000 }, (err, out) => {
-      resolve((out || '').split(/\r?\n/).some(l => /LastUsedTimeStop/.test(l) && /\s0x0\s*$/.test(l)));
-    });
+    execFile('reg', ['query', key, '/s', '/v', 'LastUsedTimeStop'], { windowsHide: true, timeout: 4000 }, (err, out) => resolve(inUseFromReg(out)));
   });
 }
 
@@ -83,4 +94,4 @@ function start(onReport, options) {
   return () => clearInterval(timer);
 }
 
-module.exports = { start, classify };
+module.exports = { start, classify, inUseFromReg };
