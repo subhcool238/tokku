@@ -29,8 +29,8 @@
     meal_start: ["Enjoy your {meal}. See you in an hour.", "Go eat. I'll nap till you're back."],
     meal_end: ["Welcome back. Ready to focus?", "Hope the {meal} was good. Shall we start?"],
     task_done: ["Done! Next up: '{next}'.", "One down. Next: '{next}'."],
-    dragged: ["Hey. That's my corner.", "I'm walking back, you know."],
-    dragged_again: ["Again? I'm going back.", "Nope. Corner. Mine."],
+    dragged: ["Hey, I was standing there.", "Moving me won't finish the work."],
+    dragged_again: ["Again? I'm walking back to my corner.", "Stop dragging me. I'm going back.", "You can move me, but I will come back."],
     quiet_over: ["You're free again. I waited quietly.", "Call's over? Picking up where we left off."],
     remind: ["Still here. Break or five more minutes?"],
   };
@@ -72,10 +72,10 @@
         .replaceAll('{minutes}', vars.minutes || '').replaceAll('{app}', this.dist.app || 'that').replaceAll('{time}', time);
       return (out[0].toUpperCase() + out.slice(1)).replace(/([.?!]\s+)([a-z])/g, (m, a, b) => a + b.toUpperCase());   // a capital after every full stop
     }
-    say(key, actions = null, vars) {
+    say(key, actions = null, vars, sticky = false) {      // sticky: no buttons, but it stays up and he waits for you to act
       const text = this.line(key, vars);
       if (this.quiet) { this._ev('suppressed:' + key); return null; }
-      const actionable = !!(actions && actions.length);
+      const actionable = sticky || !!(actions && actions.length);
       this.ch.talk(true);
       const id = this.ui.say(text, { actions, actionable, timeoutMs: actionable ? 60000 : Math.max(2600, text.length * 70),
         onDone: () => this.ch.talk(false), onTimeout: actionable ? () => this._actionTimeout(key) : null });
@@ -108,12 +108,13 @@
     _nudge() {
       const d = this.dist; d.nudged = true; this.nudging = true; this.watching = true;   // stays in front until the video is closed
       this.nudges = this.nudges.filter(t => this.t - t < 30 * MIN); this.nudges.push(this.t);
-      const n = this.nudges.length, back = { id: 'backtowork', label: 'Back to work' };
+      // No "Back to work" button: only really closing the video or switching away counts, and he sees that himself.
+      const n = this.nudges.length;
       const now = this.o.now(), mins = now.getHours() * 60 + now.getMinutes(), late = mins >= 23 * 60 + 30 || mins < 5 * 60;
       this._ev('nudge:' + n); this.ch.minimalMotion = false;
-      if (n >= 3) { this.bargaining = false; this.ch.show('annoyed_angry'); this.say('nudge_firm', [back]); }                      // third time in 30 min
-      else if (this.bargaining) { this.bargaining = false; this.ch.show('away_check_time'); this.say('bargain_over', [back]); }    // the five minutes are over
-      else { this.ch.show('annoyed_question'); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }, back]); }
+      if (n >= 3) { this.bargaining = false; this.ch.show('annoyed_angry'); this.say('nudge_firm', null, undefined, true); }                      // third time in 30 min
+      else if (this.bargaining) { this.bargaining = false; this.ch.show('away_check_time'); this.say('bargain_over', null, undefined, true); }    // the five minutes are over
+      else { this.ch.show('annoyed_question'); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }]); }
     }
     _distractionEnded() {          // the video or game is no longer in front
       const d = this.dist, was = this.nudging || this.bargaining;

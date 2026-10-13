@@ -119,7 +119,7 @@
     if (ev.type === 'arrived') { onArrived(ev.where); return; }
     if (ev.type === 'activity') {
       idleSec = ev.idle;
-      lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
+      lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.desktop ? ' | desktop in front' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');
       // Watching a video means no mouse and no keyboard, so idle time must not end a distraction.
       // Only a very long idle (30 min: the video is playing to an empty chair) or a locked screen does.
       const there = !ev.locked && ev.idle < 1800;
@@ -159,7 +159,7 @@
       const now = performance.now();
       dragTimes = dragTimes.filter(t => now - t < 3600000); dragTimes.push(now);      // annoyance resets after an hour
       ch.shadowTarget = 1; place = 'dropped';
-      await ch.dragEnd(); if (gen !== moveGen) return;
+      await ch.dragEnd(!(dragTimes.length >= 2 && !brain.quiet)); if (gen !== moveGen) return;
       if (dragTimes.length >= 2 && !brain.quiet) { await ch.annoyed(Math.min(3, dragTimes.length)); if (gen !== moveGen) return; }
       brain.say(dragTimes.length >= 2 ? 'dragged_again' : 'dragged');
       holdUntil = performance.now() + 2200; moving = false;

@@ -239,10 +239,11 @@
       return this._run('drag_start', tk);
     }
     dragMove(vx) { if (this.mode === 'dragged') this.leanTarget = clamp(-vx * 0.0005, -0.16, 0.16); }   // sways a few degrees with mouse speed
-    async dragEnd() {
+    async dragEnd(toIdle = true) {      // toIdle false: another pose follows at once, so the idle is not flashed in between
       const tk = this._begin(); this.mode = 'landing'; this.leanTarget = 0;
       if (!await this._run('drag_end', tk)) return false;
-      this.rig(150); this.mode = 'idle'; return true;
+      if (toIdle) { this.rig(150); this.mode = 'idle'; }
+      return true;
     }
     async faceAway() {   // Quiet mode look: turns his back, sits, dimmed
       const tk = this._begin(); this.mode = 'quiet'; this.sleeping = false; this.talk(false); this.leanTarget = 0;

@@ -578,7 +578,7 @@ SEQUENCES = {
     "annoyed_2": seq(("annoyed_question", 1600), end="rig"),
     "annoyed_3": seq(("annoyed_angry", 1800), end="rig"),
     "drag_start": seq(("drag_grab", 120), ("drag_hang", 0), hold="drag_hang"),
-    "drag_end": seq(("drag_land", 260), ("drag_sit", 900)),
+    "drag_end": seq(("drag_sit", 1000)),      # one landing pose only
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),
     "quiet_off": seq(("quiet_back_sit", 250), after="turn:0", end="rig"),
     "welcome_back": seq(("wave_hello", 1700), end="rig"),       # a normal wave

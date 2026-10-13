@@ -63,7 +63,7 @@ function createWindow() {
   const home = homePosition();
   win = new BrowserWindow({
     ...home, width: WIN.width, height: WIN.height,
-    title: 'Tokku', show: false,
+    title: 'Tokku', show: false, backgroundColor: '#00000000', opacity: 0,
     transparent: true, frame: false, resizable: false, maximizable: false, minimizable: false, fullscreenable: false,
     skipTaskbar: true, focusable: false, hasShadow: false, alwaysOnTop: false,
     webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload.js'),
@@ -73,7 +73,9 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.loadURL('app://tokku/index.html');
-  win.once('ready-to-show', () => win.showInactive());            // never steals keyboard focus
+  // Shown only once his picture is really drawn, so no empty box flashes at start. Never steals keyboard focus.
+  win.webContents.once('did-finish-load', () => setTimeout(() => { if (!win.isDestroyed()) { win.showInactive(); win.setOpacity(1); } }, 700));
+  win.on('minimize', () => { win.restore(); win.showInactive(); });
 
   // self-test: TOKKU_SHOT=<png path> saves the canvas picture and a status line, then quits
   const shot = process.env.TOKKU_SHOT;
@@ -86,9 +88,9 @@ function createWindow() {
         // act out a distraction: 50 s of YouTube in front, then closed. Checks that he really comes forward and goes back.
         const wait = (ms) => new Promise(res => setTimeout(res, ms)), js = (code) => win.webContents.executeJavaScript(code);
         const probe = [];
-        probe.push('before: onTop ' + win.isAlwaysOnTop());
+        probe.push('before: onTop ' + !!state.front);
         await js("window.__tokku.brain.activity('video', 'YouTube', 50)"); await wait(1500);
-        probe.push('YouTube 50 s: onTop ' + win.isAlwaysOnTop() + ', bubble \"' + await js("document.getElementById('bubble-text').textContent") + '\", buttons ' + await js("[...document.querySelectorAll('#bubble-acts button')].map(b => b.textContent).join(' / ')") + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        probe.push('YouTube 50 s: onTop ' + !!state.front + ', bubble \"' + await js("document.getElementById('bubble-text').textContent") + '\", buttons ' + await js("[...document.querySelectorAll('#bubble-acts button')].map(b => b.textContent).join(' / ')") + ', pose ' + await js("window.__tokku.ch.visual.name"));
         fs.writeFileSync(shot + '.nudge.png', Buffer.from((await js("document.getElementById('stage').toDataURL('image/png')")).split(',')[1], 'base64'));
         // a real mouse click on the first bubble button, to prove nothing covers it
         const hit = await js("(() => { const b = document.querySelector('#bubble-acts button'), r = b.getBoundingClientRect(), x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height / 2), el = document.elementFromPoint(x, y); return { x, y, top: el && (el.tagName + ' ' + el.textContent), bubble: JSON.stringify(document.getElementById('bubble').getBoundingClientRect()) }; })()");
@@ -96,11 +98,11 @@ function createWindow() {
         for (const type of ['mouseMove', 'mouseDown', 'mouseUp']) win.webContents.sendInputEvent({ type, x: hit.x, y: hit.y, button: 'left', clickCount: 1 });
         await wait(2500);
         probe.push('after the click: bargaining ' + await js("window.__tokku.brain.bargaining"));
-        probe.push('5 more minutes: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        probe.push('5 more minutes: onTop ' + !!state.front + ', pose ' + await js("window.__tokku.ch.visual.name"));
         await js("window.__tokku.brain.activity('work', null, 3)"); await wait(1000);
-        probe.push('closed, 1 s later: onTop ' + win.isAlwaysOnTop() + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        probe.push('closed, 1 s later: onTop ' + !!state.front + ', pose ' + await js("window.__tokku.ch.visual.name"));
         await wait(3200);
-        probe.push('closed, 4 s later: onTop ' + win.isAlwaysOnTop());
+        probe.push('closed, 4 s later: onTop ' + !!state.front);
         await js("window.guard.dragStart(); window.guard.drag(-400, -300)"); await wait(400);
         const lifted = win.getBounds();
         await js("window.guard.drop()"); await wait(1500);
@@ -123,7 +125,7 @@ function createWindow() {
         const area = screen.getPrimaryDisplay().workArea;
         probe.push('walk to the middle: window x ' + win.getBounds().x + ', expected ' + Math.round(area.x + (area.width - WIN.width) / 2) + ', pose ' + await js("window.__tokku.ch.visual.name || window.__tokku.ch.visual.type"));
         r.status += ' | PROBE ' + probe.join(' ; ');
-        fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + win.isAlwaysOnTop() + ' | focusable ' + win.isFocusable() + ' | sensed ' + JSON.stringify(state.lastReport || null));
+        fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + state.top + ' | focusable ' + win.isFocusable() + ' | sensed ' + JSON.stringify(state.lastReport || null));
       } catch (err) { fs.writeFileSync(shot + '.txt', 'SELF-TEST ERROR: ' + err.message); }
       app.quit();
     }, 8000));
@@ -174,11 +176,17 @@ ipcMain.on('tokku:drop', () => {
   }, 16);
 });
 ipcMain.on('tokku:hover', (e, on) => { if (win && !win.isDestroyed()) win.setIgnoreMouseEvents(!on, { forward: true }); });
-ipcMain.on('tokku:front', (e, on) => {
+// He is on top when the renderer asks for it (a question, a nudge), and also while the bare desktop is in front:
+// Win + D pushes every normal window behind the desktop, and he should still be standing there.
+function applyTop() {
   if (!win || win.isDestroyed()) return;
-  if (on) { win.setAlwaysOnTop(true, 'screen-saver'); win.showInactive(); win.moveTop(); }      // come forward without taking focus
-  else win.setAlwaysOnTop(false);                                                 // back to normal desktop level
-});
+  const want = !!(state.front || state.desktop);
+  if (want === state.top) return;
+  state.top = want;
+  if (want) { win.setAlwaysOnTop(true, 'screen-saver'); win.showInactive(); win.moveTop(); }      // come forward without taking focus
+  else win.setAlwaysOnTop(false);                                                                  // back to normal desktop level
+}
+ipcMain.on('tokku:front', (e, on) => { state.front = !!on; applyTop(); });
 
 // ---------- tray ----------
 function mealNow() { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; }
@@ -233,9 +241,10 @@ else {
     serveRenderer(); lockDownSession(); createWindow();
     sense.start((r) => {
       state.lastReport = r;
+      state.desktop = !!r.desktop; applyTop();
       if (process.env.TOKKU_SHOT) return;                           // the self-test acts out its own activity
       state.sensed = r.reasons; updateQuiet();
-      send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons });
+      send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons, desktop: !!r.desktop });
       if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes });
     }, { micCamera: () => state.micCamera });
     if (!process.env.TOKKU_SHOT) {

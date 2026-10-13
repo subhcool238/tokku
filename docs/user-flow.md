@@ -12,7 +12,7 @@ Tokku lives in the top right corner of the desktop, behind your windows. There i
 | Break over (5 minutes, or your button) | Brain or you | Stretches up, focus timer starts again | none |
 | Meal (hover button or tray) | You | Falls asleep for 1 hour, no reminders, no phone ping | I'm back (hover button) |
 | Meal over (1 hour, or your button) | Brain or you | Wakes up, stretches, "Shall we start?" | Resume focus |
-| Video or game in front for 45 seconds | Guard (window title, discarded after classifying) | Comes forward onto that window, points at your top Notion task | 5 more minutes, Back to work |
+| Video or game in front for 45 seconds | Guard (window title, discarded after classifying) | Comes forward onto that window, points at your top Notion task | 5 more minutes |
 | Notion task marked Done | Guard (Notion, read only) | Jumps, shows the check mark, proud pose, then the next task | none |
 | Call, mic or camera in use, full screen work app, or Interview mode | Guard | Quiet mode: turns his back, dims, says nothing. Timers keep running | none |
 | Quiet mode ends | Guard | Turns back, gives the one thing he held back | as for that reminder |
@@ -24,12 +24,11 @@ Tokku lives in the top right corner of the desktop, behind your windows. There i
 
 | Step | What you see | Buttons |
 |---|---|---|
-| 45 seconds on YouTube, Netflix, Hotstar, Prime Video, Steam or Epic Games | Comes forward with a "really?" pose, names the app and your task | 5 more minutes, Back to work |
+| 45 seconds on YouTube, Netflix, Hotstar, Prime Video, Steam or Epic Games | Comes forward with a "really?" pose, names the app and your task | 5 more minutes |
 | 5 more minutes | Open palm (five), then he looks away while you watch | none |
-| The 5 minutes are over and it is still in front | Checks his watch: "Please turn it off" | Back to work |
-| Back to work | Thumbs up. You get one minute to really close it | none |
-| Third nudge within 30 minutes | Angry pose, firmest line | Back to work |
-| You close the video yourself at any point | Bubble goes away, thumbs up, "Good choice" | none |
+| The 5 minutes are over and it is still in front | Checks his watch: "Please turn it off" | none |
+| Third nudge within 30 minutes | Angry pose, firmest line | none |
+| You close the video or switch to your work (the only thing that counts) | Bubble goes away, thumbs up, "Good choice" | none |
 | You ignore his question for a minute | He stays with arms crossed and asks again after 1 minute | as before |
 | You ignore him twice in a row | He walks to the middle of the screen and stands in front of the video until you close it, then walks home | as before |
 | After 11:30 pm | Late night lines instead of the gentle ones | as before |

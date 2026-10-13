@@ -1292,12 +1292,8 @@ window.TOKKU_CHARACTER = {
   "drag_end": {
    "frames": [
     {
-     "pose": "drag_land",
-     "ms": 260
-    },
-    {
      "pose": "drag_sit",
-     "ms": 900
+     "ms": 1000
     }
    ]
   },
