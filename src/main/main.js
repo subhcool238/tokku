@@ -18,7 +18,72 @@ const sense = require('./guard-sense');
 const phone = require('./guard-phone');
 let link = { on: true, topic: null };                // phone link, loaded when the app is ready
 const away = { lockedAt: 0, pinged: false, testTimer: false, brainState: 'idle' };
-const awayAfterSec = () => (away.testTimer ? 2 : 30) * 60;
+const notion = require('./guard-notion');
+const pin = require('./guard-pin');
+const demo = { on: false };                          // Demo mode: short timers for recording. Always off at start.
+const awayAfterSec = () => (demo.on ? 1 : away.testTimer ? 2 : 30) * 60;
+let nlink = { token: null, database: null, cache: null }, npoll = null, setWin = null, lastTask = null;
+const nstatus = { count: 0, top: null, error: null };
+
+// ---------- small settings window: Notion link, partner PIN, turning Tokku off ----------
+function openSettings(page) {
+  if (setWin && !setWin.isDestroyed()) setWin.close();
+  const w = setWin = new BrowserWindow({ width: 520, height: page === 'notion' ? 600 : 560, title: 'Tokku', resizable: false, maximizable: false, minimizable: false,
+    autoHideMenuBar: true, backgroundColor: '#14161f', alwaysOnTop: true,
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload-settings.js') } });
+  setWin.setMenu(null);
+  setWin.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  setWin.webContents.on('will-navigate', (e) => e.preventDefault());
+  setWin.loadURL('app://tokku/settings/index.html#' + page);
+  w.on('closed', () => { if (setWin === w) { setWin = null; emergencyFrom = 0; } if (tray) buildTray(); });
+}
+const fromSettings = (e) => setWin && !setWin.isDestroyed() && e.sender === setWin.webContents;
+const notionView = () => ({ connected: !!(nlink.token && nlink.database), count: nstatus.count, top: nstatus.top, error: nstatus.error });
+function taskUpdate(u) {
+  nstatus.count = u.count || 0; nstatus.top = u.top || null; nstatus.error = u.offline ? (u.error || 'offline') : null;
+  lastTask = { type: 'topTask', top: u.top || null, next: u.next || null, count: u.count || 0, offline: !!u.offline };
+  send(lastTask);
+  if (u.doneTitle) send({ type: 'taskDone', title: u.doneTitle });
+}
+ipcMain.handle('settings:notion-status', (e) => (fromSettings(e) ? notionView() : null));
+ipcMain.handle('settings:notion-save', async (e, token, database) => {
+  if (!fromSettings(e)) return { ok: false, error: 'not allowed' };
+  const id = notion.databaseId(database) || (database ? null : nlink.database), tk = token || nlink.token;
+  if (!tk) return { ok: false, error: 'Paste the integration token first.' };
+  if (!id) return { ok: false, error: 'That does not look like a Notion database link. Copy the link of the database page.' };
+  const r = await notion.fetchTasks(tk, id);
+  if (!r.ok) return { ok: false, error: r.error };
+  nlink = { token: tk, database: id, cache: null }; notion.save(nlink);
+  if (npoll) await npoll.now();
+  return Object.assign({ ok: true }, notionView());
+});
+ipcMain.handle('settings:notion-disconnect', (e) => {
+  if (!fromSettings(e)) return false;
+  nlink = { token: null, database: null, cache: null }; notion.save(nlink); taskUpdate({ count: 0 }); return true;
+});
+ipcMain.handle('settings:pin-status', (e) => (fromSettings(e) ? { set: pin.isSet() } : null));
+ipcMain.handle('settings:pin-set', (e, next, current) => {
+  if (!fromSettings(e)) return { ok: false, error: 'not allowed' };
+  if (pin.isSet() && !pin.check(current)) return { ok: false, error: 'The current PIN is wrong.' };
+  return pin.set(next) ? { ok: true } : { ok: false, error: 'The PIN must be 4 to 6 digits.' };
+});
+let wrongPins = [], emergencyFrom = 0;
+ipcMain.handle('settings:quit', (e, tried) => {
+  if (!fromSettings(e)) return { ok: false, error: 'not allowed' };
+  const now = Date.now(); wrongPins = wrongPins.filter(t => now - t < 60000);
+  if (wrongPins.length >= 5) return { ok: false, error: 'Too many wrong tries. Wait a minute.' };
+  if (!pin.check(tried)) { wrongPins.push(now); return { ok: false, error: 'Wrong PIN. Tokku stays.' }; }
+  setTimeout(() => app.quit(), 150); return { ok: true };
+});
+ipcMain.handle('settings:emergency-start', (e) => { if (fromSettings(e)) emergencyFrom = Date.now(); return true; });
+ipcMain.handle('settings:emergency-stop', (e) => { if (fromSettings(e) && Date.now() - emergencyFrom < 29500) emergencyFrom = 0; return true; });
+ipcMain.handle('settings:emergency-quit', (e, reason) => {
+  if (!fromSettings(e)) return { ok: false, error: 'not allowed' };
+  if (!emergencyFrom || Date.now() - emergencyFrom < 29500) return { ok: false, error: 'Hold the button for the full 30 seconds first.' };
+  if (reason.trim().length < 3) return { ok: false, error: 'Please type a reason.' };
+  pin.logEmergency(reason); setTimeout(() => app.quit(), 150); return { ok: true };
+});
+ipcMain.on('settings:close', (e) => { if (fromSettings(e)) setWin.close(); });
 
 async function phoneSetup() {
   if (!link.topic) { link.topic = phone.newTopic(); link.on = true; phone.save(link); buildTray(); }
@@ -103,7 +168,7 @@ function createWindow() {
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.loadURL('app://tokku/index.html');
   // Shown only once his picture is really drawn, so no empty box flashes at start. Never steals keyboard focus.
-  win.webContents.once('did-finish-load', () => setTimeout(() => { if (!win.isDestroyed()) { win.showInactive(); win.setOpacity(1); } }, 700));
+  win.webContents.once('did-finish-load', () => setTimeout(() => { if (!win.isDestroyed()) { win.showInactive(); win.setOpacity(1); if (lastTask) send(lastTask); } }, 700));
   win.on('minimize', () => { win.restore(); win.showInactive(); });
 
   // self-test: TOKKU_SHOT=<png path> saves the canvas picture and a status line, then quits
@@ -153,6 +218,26 @@ function createWindow() {
         probe.push('x each second: ' + xs.join(' '));
         const area = screen.getPrimaryDisplay().workArea;
         probe.push('walk to the middle: window x ' + win.getBounds().x + ', expected ' + Math.round(area.x + (area.width - WIN.width) / 2) + ', pose ' + await js("window.__tokku.ch.visual.name || window.__tokku.ch.visual.type"));
+        // settings pages, Demo mode, Notion events
+        for (const pg of ['notion', 'pin', 'quit']) {
+          openSettings(pg); await wait(1200);
+          const seen = await setWin.webContents.executeJavaScript("(() => { const v = [...document.querySelectorAll('section')].filter(x => !x.hidden); return v.length + ' page shown: ' + v[0].querySelector('h1').textContent + ', api ' + typeof window.settings.quit; })()");
+          probe.push('settings ' + pg + ': ' + seen);
+        }
+        const wrong = await setWin.webContents.executeJavaScript("window.settings.quit('0000')");
+        const early = await setWin.webContents.executeJavaScript("window.settings.emergencyQuit('testing')");
+        probe.push('quit with no PIN set and a guess: ' + JSON.stringify(wrong) + ' ; emergency without holding: ' + JSON.stringify(early));
+        setWin.close();
+        send({ type: 'demo', on: true }); await wait(400);
+        probe.push('demo on: focus ' + await js("window.__tokku.brain.o.focusMin") + ' min, nudge after ' + await js("window.__tokku.brain.o.nudgeAfterSec") + ' s');
+        send({ type: 'demo', on: false }); await wait(400);
+        probe.push('demo off: focus ' + await js("window.__tokku.brain.o.focusMin") + ' min');
+        send({ type: 'topTask', top: 'Sample task A', next: 'Sample task B', count: 2 }); await wait(300);
+        await js("window.__tokku.brain.activity('video', 'Netflix', 50)"); await wait(1200);
+        probe.push('nudge with a task name: ' + await js("document.getElementById('bubble-text').textContent"));
+        await js("window.__tokku.brain.activity('work', null, 3)"); await wait(4500);
+        send({ type: 'taskDone', title: 'Sample task A' }); await wait(2500);
+        probe.push('task done: pose ' + await js("window.__tokku.ch.visual.name") + ', onTop ' + !!state.front + ', bubble ' + await js("document.getElementById('bubble-text').textContent"));
         r.status += ' | PROBE ' + probe.join(' ; ');
         fs.writeFileSync(shot + '.txt', r.status + ' | window ' + JSON.stringify(win.getBounds()) + ' | onTop ' + state.top + ' | focusable ' + win.isFocusable() + ' | sensed ' + JSON.stringify(state.lastReport || null));
       } catch (err) { fs.writeFileSync(shot + '.txt', 'SELF-TEST ERROR: ' + err.message); }
@@ -246,11 +331,16 @@ function buildTray() {
       { label: 'Make a new topic', enabled: !!link.topic, click: () => { link.topic = null; phoneSetup(); } },
     ] },
     { label: 'Show what Tokku senses (debug line)', type: 'checkbox', checked: state.debug, click: (i) => { state.debug = i.checked; send({ type: 'debug', on: state.debug }); } },
-    { label: 'Settings (coming in a later phase)', enabled: false },
-    { label: 'What Tokku saw today (coming in a later phase)', enabled: false },
+    { label: nlink.token ? 'Notion: connected (change)' : 'Notion: connect my tasks', click: () => openSettings('notion') },
+    { label: pin.isSet() ? 'Partner PIN: change' : 'Partner PIN: set up', click: () => openSettings('pin') },
+    { label: 'More', submenu: [
+      { label: 'Demo mode (short timers, for recording)', type: 'checkbox', checked: demo.on,
+        click: (i) => { demo.on = i.checked; send({ type: 'demo', on: demo.on }); if (npoll) npoll.now(); buildTray(); } },
+      { label: 'What Tokku saw today (not built yet)', enabled: false },
+    ] },
     { type: 'separator' },
     { label: 'Bring Tokku back to his corner', click: () => { clearInterval(walkTimer); const h = homePosition(); moveTo(h.x, h.y); win.showInactive(); send({ type: 'arrived', where: 'home' }); } },
-    { label: 'Turn Tokku off', click: () => app.quit() },          // partner PIN is added in Phase 7
+    { label: demo.on ? 'Turn Tokku off  (Demo mode is ON)' : 'Turn Tokku off', click: () => (pin.isSet() ? openSettings('quit') : app.quit()) },   // with a partner PIN: asks for it
   ]);
   tray.setContextMenu(menu);
 }
@@ -274,7 +364,8 @@ app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.whenReady().then(() => {
-    link = phone.load();
+    link = phone.load(); nlink = notion.load();
+    if (nlink.cache) lastTask = { type: 'topTask', top: nlink.cache.top, next: nlink.cache.next, count: nlink.cache.count, offline: true };
     serveRenderer(); lockDownSession(); createWindow();
     sense.start((r) => {
       state.lastReport = r;
@@ -287,11 +378,12 @@ else {
     }, { micCamera: () => state.micCamera });
     if (!process.env.TOKKU_SHOT) {
       createTray();
+      npoll = notion.start(() => nlink, () => (demo.on ? 15 : 300), taskUpdate);      // every 5 minutes; 15 s in Demo mode
       globalShortcut.register('Control+Alt+Q', () => setInterview(!state.interview));
       screen.on('display-metrics-changed', () => { const h = homePosition(); moveTo(h.x, h.y); });
       process.on('uncaughtException', (err) => { console.error('Tokku error:', err); });      // log it, no error box, keep running
     }
   });
   app.on('will-quit', () => globalShortcut.unregisterAll());
-  app.on('window-all-closed', () => app.quit());
+  app.on('window-all-closed', () => { if (!win || win.isDestroyed()) app.quit(); });
 }

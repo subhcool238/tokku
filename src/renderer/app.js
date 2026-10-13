@@ -30,12 +30,16 @@
   ch.x = HOME_X; ch.groundY = GROUND_Y;
 
   // ---------- speech bubble (the brain's "ui") ----------
+  const tasks = { top: null, next: null };
+  let celebrateUntil = 0;
+  const NORMAL = { focusMin: 25, breakMin: 5, extendMin: 5, mealMin: 60, remindMin: 2, nudgeAfterSec: 45, bargainMin: 5, renudgeSec: 60, backGraceSec: 60, askSec: 60 };
+  const DEMO = { focusMin: 1, breakMin: 0.5, extendMin: 0.5, mealMin: 1, remindMin: 0.5, nudgeAfterSec: 10, bargainMin: 0.5, renudgeSec: 15, backGraceSec: 10, askSec: 20 };
   let bubbleId = 0, hideTimer = null, typeTimer = null, asking = false;
   // He is in front while a question is open, and from his first nudge until the video or game is closed.
   // Going back behind the windows waits a moment, so the last pose (thumbs up) is still seen.
   let inFront = false, backAt = 0;
   function updateFront(now) {
-    const want = asking || brain.watching || moving || dragging || place !== 'home';
+    const want = asking || brain.watching || moving || dragging || place !== 'home' || now < celebrateUntil;
     if (want) { backAt = 0; if (!inFront) { inFront = true; guard.front(true); } }
     else if (inFront) { if (!backAt) backAt = now + 2600; else if (now >= backAt) { inFront = false; backAt = 0; guard.front(false); } }
   }
@@ -58,7 +62,7 @@
     hide() { clearTimeout(hideTimer); clearInterval(typeTimer); bubble.hidden = true; asking = false; },
     onTimer() {},
   };
-  const brain = new TokkuBrain(ch, ui, { homeX: HOME_X, topTask: () => 'your work', nextTask: () => 'the next task' });   // real Notion tasks arrive in Phase 5
+  const brain = new TokkuBrain(ch, ui, { homeX: HOME_X, topTask: () => tasks.top || 'your work', nextTask: () => tasks.next || 'the next task' });   // names come from Notion when it is connected
 
   // ---------- hover buttons: only what fits the moment ----------
   const mealNow = () => { const h = new Date().getHours(); return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : 'dinner'; };
@@ -119,6 +123,13 @@
   let pausedUntil = 0, idleSec = 0, debugOn = false, lastSense = '';
   guard.onEvent((ev) => {
     if (ev.type === 'arrived') { onArrived(ev.where); return; }
+    if (ev.type === 'topTask') { tasks.top = ev.top; tasks.next = ev.next; return; }
+    if (ev.type === 'taskDone') { if (brain.taskDone()) celebrateUntil = performance.now() + 7000; return; }      // he comes forward to celebrate
+    if (ev.type === 'demo') {
+      Object.assign(brain.o, ev.on ? DEMO : NORMAL);
+      if (brain.state === 'focusing') brain._setTimer('focus', brain.o.focusMin);
+      brain.say(ev.on ? 'demo_on' : 'demo_off'); return;
+    }
     if (ev.type === 'activity') {
       idleSec = ev.idle;
       lastSense = ev.category + (ev.app ? ' ' + ev.app : '') + ' | idle ' + ev.idle + ' s' + (ev.locked ? ' | locked' : '') + (ev.desktop ? ' | desktop in front' : '') + (ev.reasons.length ? ' | quiet: ' + ev.reasons.join(', ') : '');

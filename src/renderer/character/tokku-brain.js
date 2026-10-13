@@ -24,6 +24,7 @@
     late_night: ["{app} at {time}? Tomorrow-you will not be happy.", "{app} this late? Sleep or work. There's no third option."],
     back_to_work: ["Good choice. Let's go.", "That's the spirit. Back to it."],
     welcome_back: ["Welcome back. Let's pick up where we left off.", "There you are. {task} missed you."],
+    demo_on: ["Demo mode. Everything happens fast now."], demo_off: ["Demo mode is off. Back to real time."],
     break_over: ["Break's over. Fresh start.", "Back at it. You've got this."],
     break_end: ["Break's over. Back to '{task}'?", "Ready? '{task}' is waiting."],
     meal_start: ["Enjoy your {meal}. See you in an hour.", "Go eat. I'll nap till you're back."],
@@ -78,7 +79,7 @@
       if (this.quiet) { this._ev('suppressed:' + key); return null; }
       const actionable = sticky || !!(actions && actions.length);
       this.ch.talk(true);
-      const id = this.ui.say(text, { actions, actionable, timeoutMs: actionable ? 60000 : Math.max(2600, text.length * 70),
+      const id = this.ui.say(text, { actions, actionable, timeoutMs: actionable ? (this.o.askSec || 60) * 1000 : Math.max(2600, text.length * 70),
         onDone: () => this.ch.talk(false), onTimeout: actionable ? () => this._actionTimeout(key) : null });
       this.bubble = { id, actionable, key, actions };
       this._speak(text); this._ev('say:' + key);

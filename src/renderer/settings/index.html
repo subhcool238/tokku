@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Tokku</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+<main>
+  <!-- Notion -->
+  <section id="page-notion" hidden>
+    <h1>Connect Notion</h1>
+    <p class="lead">Tokku reads your task list so he can name your most urgent task. He can only read. He never changes anything in Notion.</p>
+    <ol>
+      <li>Open <b>notion.so/my-integrations</b> in your browser and create a new integration. Give it <b>Read content</b> only.</li>
+      <li>In Notion, open your tasks database, click <b>...</b> then <b>Connections</b>, and add that integration.</li>
+      <li>Paste the integration token and the database link below.</li>
+    </ol>
+    <label>Integration token <input id="notion-token" type="password" autocomplete="off" spellcheck="false" placeholder="starts with ntn_ or secret_"></label>
+    <label>Database link or id <input id="notion-db" type="text" autocomplete="off" spellcheck="false" placeholder="https://www.notion.so/..."></label>
+    <p class="msg" id="notion-msg"></p>
+    <div class="row">
+      <button class="primary" id="notion-save">Connect</button>
+      <button id="notion-off" hidden>Disconnect</button>
+      <span class="spacer"></span>
+      <button data-close>Close</button>
+    </div>
+    <p class="fine">The token is stored encrypted on this PC with Windows data protection. It is never written to the project folder.</p>
+  </section>
+
+  <!-- set the partner PIN -->
+  <section id="page-pin" hidden>
+    <h1>Partner PIN</h1>
+    <p class="lead"><b>Hand this screen to your partner.</b> They choose a PIN of 4 to 6 digits and keep it to themselves. Tokku will ask for it before he can be turned off.</p>
+    <label id="pin-current-row" hidden>Current PIN <input id="pin-current" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></label>
+    <label>New PIN <input id="pin-new" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></label>
+    <label>New PIN again <input id="pin-again" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></label>
+    <p class="msg" id="pin-msg"></p>
+    <div class="row">
+      <button class="primary" id="pin-save">Save PIN</button>
+      <span class="spacer"></span>
+      <button data-close>Close</button>
+    </div>
+    <p class="fine">Only a scrambled fingerprint of the PIN is stored, never the PIN itself. Your partner can only unlock. They never see what you were doing.</p>
+  </section>
+
+  <!-- turn Tokku off -->
+  <section id="page-quit" hidden>
+    <h1>Turn Tokku off</h1>
+    <p class="lead">Ask your partner for the PIN.</p>
+    <label>Partner PIN <input id="quit-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></label>
+    <p class="msg" id="quit-msg"></p>
+    <div class="row">
+      <button class="primary" id="quit-go">Turn off</button>
+      <span class="spacer"></span>
+      <button data-close>Cancel</button>
+    </div>
+    <hr>
+    <h2>Emergency exit</h2>
+    <p class="fine">Always available, no PIN needed. Hold the button for 30 seconds, then say why. The reason is saved on this PC.</p>
+    <button id="hold" class="hold"><span id="hold-fill"></span><span id="hold-text">Hold for 30 seconds</span></button>
+    <div id="reason-box" hidden>
+      <label>Why are you turning Tokku off? <input id="reason" type="text" maxlength="200" autocomplete="off"></label>
+      <div class="row"><button class="primary" id="reason-go">Turn off now</button></div>
+    </div>
+  </section>
+</main>
+<script src="settings.js"></script>
+</body>
+</html>
