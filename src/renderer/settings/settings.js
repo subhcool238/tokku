@@ -12,7 +12,7 @@
     const show = (s) => {
       $('notion-off').hidden = !s.connected;
       if (s.connected && s.error) say(msg, 'Saved, but the last check failed: ' + s.error, false);
-      else if (s.connected) say(msg, 'Connected. ' + s.count + ' open tasks' + (s.top ? '. Most urgent: ' + s.top : '.'), true);
+      else if (s.connected) say(msg, 'Connected' + (s.dbName ? ' to "' + s.dbName + '"' : '') + '. ' + s.count + ' open tasks' + (s.top ? '. Most urgent: ' + s.top : '.'), true);
     };
     show(await api.notionStatus());
     $('notion-save').addEventListener('click', async () => {

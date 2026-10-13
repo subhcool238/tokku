@@ -75,6 +75,25 @@ function openTasks(pages, sc) {
     .sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
 }
 
+// ---- finding the tasks database when the link given was a page (for example the home page of a template) ----
+// Scores every database the integration can see: a name with "task" in it, a status column and a date column.
+function pickTasksDatabase(databases) {
+  const scored = databases.map((d) => {
+    const name = (d.title || []).map(t => t.plain_text).join('').trim(), sc = schemaOf(d), n = name.toLowerCase();
+    const score = (/all tasks/.test(n) ? 6 : /task/.test(n) ? 4 : /to.?do/.test(n) ? 2 : 0) + (sc.status ? 2 : 0) + (sc.due ? 1 : 0)
+      + (Object.keys(d.properties || {}).some(k => k.toLowerCase() === 'kanban status') ? 3 : 0);
+    return { id: String(d.id).replace(/-/g, ''), name, score, usable: !!sc.title };
+  }).filter(d => d.usable && d.score >= 4).sort((a, b) => b.score - a.score);
+  return scored[0] || null;
+}
+async function findTasksDatabase(token) {
+  const r = await call(token, 'POST', '/v1/search', { filter: { property: 'object', value: 'database' }, page_size: 100 });
+  if (!r.ok) return r;
+  const best = pickTasksDatabase(r.json.results || []);
+  return best ? { ok: true, id: best.id, name: best.name }
+    : { ok: false, error: 'That link is a page, and Tokku found no tasks database under it. Open your tasks database as a full page and copy that link.' };
+}
+
 // ---- one look at Notion ----
 async function fetchTasks(token, database) {
   const db = await call(token, 'GET', '/v1/databases/' + database);
@@ -117,4 +136,4 @@ function start(getLink, everySec, onUpdate) {
   return { now: poll };
 }
 
-module.exports = { load, save, databaseId, fetchTasks, start, schemaOf, taskOf, openTasks };
+module.exports = { load, save, databaseId, fetchTasks, findTasksDatabase, pickTasksDatabase, start, schemaOf, taskOf, openTasks };

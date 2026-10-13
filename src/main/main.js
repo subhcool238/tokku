@@ -38,7 +38,7 @@ function openSettings(page) {
   w.on('closed', () => { if (setWin === w) { setWin = null; emergencyFrom = 0; } if (tray) buildTray(); });
 }
 const fromSettings = (e) => setWin && !setWin.isDestroyed() && e.sender === setWin.webContents;
-const notionView = () => ({ connected: !!(nlink.token && nlink.database), count: nstatus.count, top: nstatus.top, error: nstatus.error });
+const notionView = () => ({ connected: !!(nlink.token && nlink.database), count: nstatus.count, top: nstatus.top, error: nstatus.error, dbName: nstatus.dbName || null });
 function taskUpdate(u) {
   nstatus.count = u.count || 0; nstatus.top = u.top || null; nstatus.error = u.offline ? (u.error || 'offline') : null;
   lastTask = { type: 'topTask', top: u.top || null, next: u.next || null, count: u.count || 0, offline: !!u.offline };
@@ -51,9 +51,15 @@ ipcMain.handle('settings:notion-save', async (e, token, database) => {
   const id = notion.databaseId(database) || (database ? null : nlink.database), tk = token || nlink.token;
   if (!tk) return { ok: false, error: 'Paste the integration token first.' };
   if (!id) return { ok: false, error: 'That does not look like a Notion database link. Copy the link of the database page.' };
-  const r = await notion.fetchTasks(tk, id);
+  let useId = id, r = await notion.fetchTasks(tk, useId), found = null;
+  if (!r.ok && /is a page|not a database/i.test(r.error)) {          // the link was a page: look for the tasks database under it
+    found = await notion.findTasksDatabase(tk);
+    if (!found.ok) return { ok: false, error: found.error };
+    useId = found.id; r = await notion.fetchTasks(tk, useId);
+  }
   if (!r.ok) return { ok: false, error: r.error };
-  nlink = { token: tk, database: id, cache: null }; notion.save(nlink);
+  nlink = { token: tk, database: useId, cache: null }; notion.save(nlink);
+  nstatus.dbName = found ? found.name : null;
   if (npoll) await npoll.now();
   return Object.assign({ ok: true }, notionView());
 });
