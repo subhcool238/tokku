@@ -262,6 +262,11 @@ function createWindow() {
         await js("window.__tokku.brain.activity('video', 'Netflix', 50)"); await wait(1200);
         probe.push('nudge with a task name: ' + await js("document.getElementById('bubble-text').textContent"));
         await js("window.__tokku.brain.activity('work', null, 3)"); await wait(4500);
+        send({ type: 'topTask', top: 'A deliberately very long sample task name: complete two lessons and write the summary', next: 'Sample task B', count: 2 }); await wait(300);
+        await js("window.__tokku.brain.say('nudge_gentle', [{ id: 'x', label: '5 more minutes' }])"); await wait(2600);
+        probe.push('long line: ' + await js("(() => { const r = document.getElementById('bubble').getBoundingClientRect(), t = document.getElementById('bubble-text'); return 'bubble left ' + Math.round(r.left) + ' right ' + Math.round(r.right) + ' of window ' + window.innerWidth + ', text overflows ' + (t.scrollWidth > t.clientWidth + 1) + ', centre ' + Math.round((r.left + r.right) / 2); })()"));
+        await js("window.__tokku.brain._hideBubble()");
+        send({ type: 'topTask', top: 'Sample task A', next: 'Sample task B', count: 2 }); await wait(300);
         send({ type: 'taskDone', title: 'Sample task A' }); await wait(2500);
         probe.push('task done: pose ' + await js("window.__tokku.ch.visual.name") + ', onTop ' + !!state.front + ', bubble ' + await js("document.getElementById('bubble-text').textContent"));
         r.status += ' | PROBE ' + probe.join(' ; ');
