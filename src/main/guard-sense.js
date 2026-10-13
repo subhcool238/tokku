@@ -36,15 +36,14 @@ const RECORDERS = /ScreenSketch|XboxGamingOverlay|XboxGameBar|GamingApp|obs(64|3
 // not a screen recorder has LastUsedTimeStop = 0, which means "in use right now".
 function inUseFromReg(out) {
   let app = '';
-  for (const line of String(out || '').split(/?
-/)) {
+  for (const line of String(out || '').split(/\r?\n/)) {
     if (/^HKEY_/i.test(line)) app = line;
     else if (/LastUsedTimeStop/.test(line) && /\s0x0\s*$/.test(line) && !RECORDERS.test(app)) return true;
   }
   return false;
 }
 function deviceInUse(kind) {
-  const key = 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\' + kind;
+  const key = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\' + kind;
   return new Promise((resolve) => {
     execFile('reg', ['query', key, '/s', '/v', 'LastUsedTimeStop'], { windowsHide: true, timeout: 4000 }, (err, out) => resolve(inUseFromReg(out)));
   });
