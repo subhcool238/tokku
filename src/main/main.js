@@ -89,6 +89,7 @@ function createWindow() {
         probe.push('before: onTop ' + win.isAlwaysOnTop());
         await js("window.__tokku.brain.activity('video', 'YouTube', 50)"); await wait(1500);
         probe.push('YouTube 50 s: onTop ' + win.isAlwaysOnTop() + ', bubble \"' + await js("document.getElementById('bubble-text').textContent") + '\", buttons ' + await js("[...document.querySelectorAll('#bubble-acts button')].map(b => b.textContent).join(' / ')") + ', pose ' + await js("window.__tokku.ch.visual.name"));
+        fs.writeFileSync(shot + '.nudge.png', Buffer.from((await js("document.getElementById('stage').toDataURL('image/png')")).split(',')[1], 'base64'));
         // a real mouse click on the first bubble button, to prove nothing covers it
         const hit = await js("(() => { const b = document.querySelector('#bubble-acts button'), r = b.getBoundingClientRect(), x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height / 2), el = document.elementFromPoint(x, y); return { x, y, top: el && (el.tagName + ' ' + el.textContent), bubble: JSON.stringify(document.getElementById('bubble').getBoundingClientRect()) }; })()");
         probe.push('element under the button centre: ' + hit.top + ' ; bubble box ' + hit.bubble);
@@ -106,6 +107,16 @@ function createWindow() {
         probe.push('drag: lifted to ' + lifted.x + ',' + lifted.y + ' then dropped to ' + win.getBounds().x + ',' + win.getBounds().y + ' (floor y ' + homePosition().y + ')');
         await wait(6000);
         probe.push('after the drop he walked home: x ' + win.getBounds().x + ' (home x ' + homePosition().x + ')');
+        // the crash from 13 Oct: a position that rounds to -0, and a drag that starts in the middle of a walk
+        let crash = 'none'; try { win.setPosition(Math.round(-0.3), win.getPosition()[1]); } catch (err) { crash = 'raw setPosition throws (' + err.message.slice(0, 40) + ')'; }
+        const before = win.getPosition(); moveTo(-0.3, before[1]); const at = win.getPosition(); moveTo(before[0], before[1]);
+        probe.push('minus zero: ' + crash + ' ; moveTo(-0.3) put him at x ' + at[0]);
+        await js("window.guard.walk('center')"); await wait(1200);
+        const midWalk = win.getBounds().x;
+        await js("window.guard.dragStart(); window.guard.drag(-150, -250)"); await wait(600);
+        const grabbed = win.getBounds();
+        await js("window.guard.drop()"); await wait(9000);
+        probe.push('drag during a walk: was walking at x ' + midWalk + ', grabbed to ' + grabbed.x + ',' + grabbed.y + ', after the drop he is home at x ' + win.getBounds().x + ' y ' + win.getBounds().y);
         await js("window.guard.walk('center')");
         const xs = []; for (let i = 0; i < 8; i++) { await wait(1000); xs.push(win.getBounds().x); }
         probe.push('x each second: ' + xs.join(' '));
@@ -120,6 +131,10 @@ function createWindow() {
 }
 
 // ---------- renderer requests (the only things it can ask for) ----------
+function moveTo(x, y) {
+  x = Math.round(x) | 0; y = Math.round(y) | 0;                     // "| 0" turns -0 and anything odd into a plain whole number
+  try { if (win && !win.isDestroyed()) win.setPosition(x, y); } catch (err) { /* a bad position must never stop Tokku */ }
+}
 let walkTimer = null;
 const WALK_PX_PER_SEC = 200;
 ipcMain.on('tokku:walk', (e, where) => {
@@ -132,7 +147,7 @@ ipcMain.on('tokku:walk', (e, where) => {
     if (!win || win.isDestroyed()) { clearInterval(walkTimer); return; }
     const now = Date.now(), step = WALK_PX_PER_SEC * (now - last) / 1000; last = now;
     x = Math.abs(targetX - x) <= step ? targetX : x + Math.sign(targetX - x) * step;
-    win.setPosition(Math.round(x), home.y);
+    moveTo(x, home.y);
     if (x === targetX) { clearInterval(walkTimer); send({ type: 'arrived', where }); }
   }, 16);
 });
@@ -144,7 +159,7 @@ ipcMain.on('tokku:drag', (e, dx, dy) => {
   const a = screen.getPrimaryDisplay().workArea, home = homePosition();
   const x = Math.max(a.x - 120, Math.min(a.x + a.width - WIN.width + 60, dragFrom[0] + Math.round(dx)));
   const y = Math.max(a.y - 150, Math.min(home.y, dragFrom[1] + Math.round(dy)));
-  win.setPosition(x, y);
+  moveTo(x, y);
 });
 ipcMain.on('tokku:drop', () => {
   if (!win || win.isDestroyed()) return;
@@ -154,7 +169,7 @@ ipcMain.on('tokku:drop', () => {
     if (!win || win.isDestroyed()) { clearInterval(walkTimer); return; }
     const now = Date.now(), dt = (now - last) / 1000; last = now; v += 3200 * dt;
     y = Math.min(home.y, y + v * dt);
-    win.setPosition(x, Math.round(y));
+    moveTo(x, y);
     if (y >= home.y) { clearInterval(walkTimer); send({ type: 'arrived', where: 'ground' }); }
   }, 16);
 });
@@ -190,7 +205,7 @@ function buildTray() {
     { label: 'Settings (coming in a later phase)', enabled: false },
     { label: 'What Tokku saw today (coming in a later phase)', enabled: false },
     { type: 'separator' },
-    { label: 'Bring Tokku back to his corner', click: () => { const h = homePosition(); win.setPosition(h.x, h.y); win.showInactive(); } },
+    { label: 'Bring Tokku back to his corner', click: () => { clearInterval(walkTimer); const h = homePosition(); moveTo(h.x, h.y); win.showInactive(); send({ type: 'arrived', where: 'home' }); } },
     { label: 'Turn Tokku off', click: () => app.quit() },          // partner PIN is added in Phase 7
   ]);
   tray.setContextMenu(menu);
@@ -226,7 +241,8 @@ else {
     if (!process.env.TOKKU_SHOT) {
       createTray();
       globalShortcut.register('Control+Alt+Q', () => setInterview(!state.interview));
-      screen.on('display-metrics-changed', () => { const h = homePosition(); if (win && !win.isDestroyed()) win.setPosition(h.x, h.y); });
+      screen.on('display-metrics-changed', () => { const h = homePosition(); moveTo(h.x, h.y); });
+      process.on('uncaughtException', (err) => { console.error('Tokku error:', err); });      // log it, no error box, keep running
     }
   });
   app.on('will-quit', () => globalShortcut.unregisterAll());

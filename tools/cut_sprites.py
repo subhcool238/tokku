@@ -51,6 +51,14 @@ CIRCLE_BAD = {"sleep_curl", "sleep_breathe_in", "sleep_breathe_out", "sleep_ear_
 #                                      walk frames share one size, turn frames share one size (no popping inside a cycle)
 SCALE_SPREAD = 0.05                  # a frame may differ this much from its sheet's median scale
 
+# Poses drawn looking to one side. The engine mirrors them so he looks into the screen, not at its edge.
+# done_checkmark is left out on purpose: a mirrored check mark reads wrong.
+FACES_RIGHT = {"annoyed_question", "annoyed_mild", "annoyed_angry", "away_sigh", "accept_thumbs", "found_point", "break_sit_relaxed",
+               "drag_sit", "joy_excited", "done_proud", "done_thumbs", "plead", "hopeful", "surprise_start", "surprise_strong",
+               "sleepy_stand", "yawn_sit", "drowsy_sit", "sleep_curl", "wake_yawn_lying", "stretch_up", "break_stretch", "break_yawn",
+               "inspect_low", "think_chin", "notice", "joy_wink_thumbs"}
+FACES_LEFT = {"away_look_away"}
+
 YAW = {"turn_000": 0, "turn_030": 30, "turn_060": 60, "turn_090": 90, "turn_120": 120, "turn_150": 150,
        "turn_180": 180, "turn_210": -150, "turn_240": -120, "turn_270": -90, "turn_300": -60, "turn_330": -30}
 
@@ -837,6 +845,10 @@ def main():
              "anchorX": round(float(f["anchorX"])), "feetY": int(f["feetY"]), "scale": round(float(f["scale"]), 3)}
         if f.get("air"):
             p["airPx"] = int(f["air"])
+        if n in FACES_RIGHT:
+            p["faces"] = "right"
+        elif n in FACES_LEFT:
+            p["faces"] = "left"
         poses[n] = p
     for k, v in legacy.items():      # a new frame wins when the name is the same (sleep_curl)
         poses.setdefault(k, v)

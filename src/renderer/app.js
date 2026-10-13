@@ -93,8 +93,9 @@
   // A press that moves is a drag: he hangs from the mouse, drops, sits, complains and walks back.
   let press = null, dragging = false, dragTimes = [];
   window.addEventListener('mousemove', (e) => {
-    if (press && !dragging && Math.hypot(e.screenX - press.x, e.screenY - press.y) > 6 && !brain.quiet && !moving && brain.state !== 'meal') {
-      dragging = true; ui.hide(); showHover(false); guard.dragStart(); ch.dragStart();
+    if (press && !dragging && Math.hypot(e.screenX - press.x, e.screenY - press.y) > 6 && !brain.quiet && brain.state !== 'meal') {
+      // works at any moment, also while he is walking back or still falling: this drag simply takes over
+      dragging = true; moveGen++; moving = false; ui.hide(); showHover(false); guard.dragStart(); ch.shadowTarget = 0; ch.dragStart();
     }
     if (dragging) { guard.drag(e.screenX - press.x, e.screenY - press.y); ch.dragMove(e.movementX * 60); return; }
     const el = document.elementFromPoint(e.clientX, e.clientY);
@@ -134,7 +135,7 @@
   });
 
   // ---------- ignored for too long: he walks to the middle of the screen and stays until the video is closed ----------
-  let place = 'home', moving = false, holdUntil = 0;
+  let place = 'home', moving = false, holdUntil = 0, moveGen = 0;      // moveGen: a new drag cancels whatever was going on
   const WALK_SPEED = 200;                                         // same as WALK_PX_PER_SEC in src/main/main.js
   function targetX(where) {                                       // where the window's left edge will be, to know which way to walk
     const left = screen.availLeft || 0, w = window.outerWidth || 340;
@@ -152,17 +153,20 @@
     guard.walk(want);
   }
   async function onArrived(where) {
+    const gen = moveGen;
+    if (dragging) return;
     if (where === 'ground') {                                     // dropped after a drag: land, sit, complain, then walk back
       const now = performance.now();
       dragTimes = dragTimes.filter(t => now - t < 3600000); dragTimes.push(now);      // annoyance resets after an hour
-      await ch.dragEnd();
-      if (dragTimes.length >= 2 && !brain.quiet) await ch.annoyed(Math.min(3, dragTimes.length));
+      ch.shadowTarget = 1; place = 'dropped';
+      await ch.dragEnd(); if (gen !== moveGen) return;
+      if (dragTimes.length >= 2 && !brain.quiet) { await ch.annoyed(Math.min(3, dragTimes.length)); if (gen !== moveGen) return; }
       brain.say(dragTimes.length >= 2 ? 'dragged_again' : 'dragged');
-      place = 'dropped'; holdUntil = performance.now() + 2200; moving = false;
+      holdUntil = performance.now() + 2200; moving = false;
       return;
     }
     place = where;
-    await ch.walkDone();
+    await ch.walkDone(); if (gen !== moveGen) return;
     moving = false;
     if (brain.quiet) ch.faceAway();                               // Quiet mode started while he was walking
     if (where === 'center' && brain.dist.app) brain.dist.graceUntil = brain.t;   // he speaks up as soon as he gets there
@@ -182,6 +186,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ch.draw(ctx);
     if (over) showHover(true);
+    ch.faceSide = (window.screenX + HOME_X) > ((screen.availLeft || 0) + screen.availWidth / 2) ? 'left' : 'right';   // look into the screen
     updatePlace();
     updateFront(now);
     status = 'running, ' + Object.keys(images).length + ' images, brain ' + brain.state + ', picture ' + (ch.visual.name || ch.visual.type);

@@ -303,7 +303,8 @@ window.TOKKU_CHARACTER = {
    "h": 699,
    "anchorX": 283,
    "feetY": 691,
-   "scale": 0.792
+   "scale": 0.792,
+   "faces": "right"
   },
   "yawn_sit": {
    "file": "v3/yawn_sit.png",
@@ -311,7 +312,8 @@ window.TOKKU_CHARACTER = {
    "h": 667,
    "anchorX": 370,
    "feetY": 659,
-   "scale": 0.75
+   "scale": 0.75,
+   "faces": "right"
   },
   "drowsy_sit": {
    "file": "v3/drowsy_sit.png",
@@ -319,7 +321,8 @@ window.TOKKU_CHARACTER = {
    "h": 631,
    "anchorX": 262,
    "feetY": 621,
-   "scale": 0.74
+   "scale": 0.74,
+   "faces": "right"
   },
   "sleep_curl": {
    "file": "v3/sleep_curl.png",
@@ -327,7 +330,8 @@ window.TOKKU_CHARACTER = {
    "h": 388,
    "anchorX": 272,
    "feetY": 378,
-   "scale": 0.732
+   "scale": 0.732,
+   "faces": "right"
   },
   "sleep_breathe_in": {
    "file": "v3/sleep_breathe_in.png",
@@ -375,7 +379,8 @@ window.TOKKU_CHARACTER = {
    "h": 683,
    "anchorX": 275,
    "feetY": 676,
-   "scale": 0.856
+   "scale": 0.856,
+   "faces": "right"
   },
   "awake_front": {
    "file": "v3/awake_front.png",
@@ -407,7 +412,8 @@ window.TOKKU_CHARACTER = {
    "h": 428,
    "anchorX": 394,
    "feetY": 420,
-   "scale": 0.73
+   "scale": 0.73,
+   "faces": "right"
   },
   "wake_sit_rub": {
    "file": "v3/wake_sit_rub.png",
@@ -423,7 +429,8 @@ window.TOKKU_CHARACTER = {
    "h": 679,
    "anchorX": 253,
    "feetY": 671,
-   "scale": 0.783
+   "scale": 0.783,
+   "faces": "right"
   },
   "wave_hello": {
    "file": "v3/wave_hello.png",
@@ -447,7 +454,8 @@ window.TOKKU_CHARACTER = {
    "h": 679,
    "anchorX": 283,
    "feetY": 671,
-   "scale": 0.762
+   "scale": 0.762,
+   "faces": "right"
   },
   "hopeful": {
    "file": "v3/hopeful.png",
@@ -455,7 +463,8 @@ window.TOKKU_CHARACTER = {
    "h": 694,
    "anchorX": 294,
    "feetY": 686,
-   "scale": 0.77
+   "scale": 0.77,
+   "faces": "right"
   },
   "accept_thumbs": {
    "file": "v3/accept_thumbs.png",
@@ -463,7 +472,8 @@ window.TOKKU_CHARACTER = {
    "h": 694,
    "anchorX": 312,
    "feetY": 686,
-   "scale": 0.76
+   "scale": 0.76,
+   "faces": "right"
   },
   "sulk": {
    "file": "v3/sulk.png",
@@ -487,7 +497,8 @@ window.TOKKU_CHARACTER = {
    "h": 670,
    "anchorX": 302,
    "feetY": 662,
-   "scale": 0.789
+   "scale": 0.789,
+   "faces": "right"
   },
   "surprise_strong": {
    "file": "v3/surprise_strong.png",
@@ -495,7 +506,8 @@ window.TOKKU_CHARACTER = {
    "h": 667,
    "anchorX": 448,
    "feetY": 659,
-   "scale": 0.794
+   "scale": 0.794,
+   "faces": "right"
   },
   "surprise_recover": {
    "file": "v3/surprise_recover.png",
@@ -511,7 +523,8 @@ window.TOKKU_CHARACTER = {
    "h": 676,
    "anchorX": 276,
    "feetY": 669,
-   "scale": 0.754
+   "scale": 0.754,
+   "faces": "right"
   },
   "joy_cheer_leg": {
    "file": "v3/joy_cheer_leg.png",
@@ -536,7 +549,8 @@ window.TOKKU_CHARACTER = {
    "h": 669,
    "anchorX": 318,
    "feetY": 661,
-   "scale": 0.755
+   "scale": 0.755,
+   "faces": "right"
   },
   "inspect_low": {
    "file": "v3/inspect_low.png",
@@ -544,7 +558,8 @@ window.TOKKU_CHARACTER = {
    "h": 570,
    "anchorX": 348,
    "feetY": 562,
-   "scale": 0.752
+   "scale": 0.752,
+   "faces": "right"
   },
   "think_chin": {
    "file": "v3/think_chin.png",
@@ -552,7 +567,8 @@ window.TOKKU_CHARACTER = {
    "h": 657,
    "anchorX": 272,
    "feetY": 649,
-   "scale": 0.782
+   "scale": 0.782,
+   "faces": "right"
   },
   "found_point": {
    "file": "v3/found_point.png",
@@ -560,7 +576,8 @@ window.TOKKU_CHARACTER = {
    "h": 654,
    "anchorX": 312,
    "feetY": 646,
-   "scale": 0.789
+   "scale": 0.789,
+   "faces": "right"
   },
   "done_thumbs": {
    "file": "v3/done_thumbs.png",
@@ -568,7 +585,8 @@ window.TOKKU_CHARACTER = {
    "h": 679,
    "anchorX": 273,
    "feetY": 671,
-   "scale": 0.735
+   "scale": 0.735,
+   "faces": "right"
   },
   "done_cheer": {
    "file": "v3/done_cheer.png",
@@ -592,7 +610,8 @@ window.TOKKU_CHARACTER = {
    "h": 691,
    "anchorX": 290,
    "feetY": 683,
-   "scale": 0.774
+   "scale": 0.774,
+   "faces": "right"
   },
   "annoyed_mild": {
    "file": "v3/annoyed_mild.png",
@@ -600,7 +619,8 @@ window.TOKKU_CHARACTER = {
    "h": 635,
    "anchorX": 283,
    "feetY": 627,
-   "scale": 0.775
+   "scale": 0.775,
+   "faces": "right"
   },
   "annoyed_question": {
    "file": "v3/annoyed_question.png",
@@ -608,7 +628,8 @@ window.TOKKU_CHARACTER = {
    "h": 643,
    "anchorX": 292,
    "feetY": 635,
-   "scale": 0.767
+   "scale": 0.767,
+   "faces": "right"
   },
   "annoyed_angry": {
    "file": "v3/annoyed_angry.png",
@@ -616,7 +637,8 @@ window.TOKKU_CHARACTER = {
    "h": 521,
    "anchorX": 288,
    "feetY": 514,
-   "scale": 0.78
+   "scale": 0.78,
+   "faces": "right"
   },
   "drag_grab": {
    "file": "v3/drag_grab.png",
@@ -650,7 +672,8 @@ window.TOKKU_CHARACTER = {
    "h": 559,
    "anchorX": 301,
    "feetY": 551,
-   "scale": 0.875
+   "scale": 0.875,
+   "faces": "right"
   },
   "quiet_back_sit": {
    "file": "v3/quiet_back_sit.png",
@@ -674,7 +697,8 @@ window.TOKKU_CHARACTER = {
    "h": 653,
    "anchorX": 278,
    "feetY": 645,
-   "scale": 0.76
+   "scale": 0.76,
+   "faces": "right"
   },
   "break_yawn": {
    "file": "v3/break_yawn.png",
@@ -682,7 +706,8 @@ window.TOKKU_CHARACTER = {
    "h": 649,
    "anchorX": 292,
    "feetY": 641,
-   "scale": 0.782
+   "scale": 0.782,
+   "faces": "right"
   },
   "break_sit_relaxed": {
    "file": "v3/break_sit_relaxed.png",
@@ -690,7 +715,8 @@ window.TOKKU_CHARACTER = {
    "h": 494,
    "anchorX": 249,
    "feetY": 486,
-   "scale": 0.795
+   "scale": 0.795,
+   "faces": "right"
   },
   "break_lie_rest": {
    "file": "v3/break_lie_rest.png",
@@ -706,7 +732,8 @@ window.TOKKU_CHARACTER = {
    "h": 629,
    "anchorX": 275,
    "feetY": 620,
-   "scale": 0.792
+   "scale": 0.792,
+   "faces": "left"
   },
   "away_check_time": {
    "file": "v3/away_check_time.png",
@@ -730,7 +757,8 @@ window.TOKKU_CHARACTER = {
    "h": 662,
    "anchorX": 322,
    "feetY": 654,
-   "scale": 0.775
+   "scale": 0.775,
+   "faces": "right"
   },
   "walkd_stand": {
    "file": "v3/walkd_stand.png",

@@ -58,6 +58,8 @@
       this.sleeping = false; this.zs = []; this.zClock = 0;
       this.walk = null; this.mode = 'idle';
       this.minimalMotion = false; // focus sessions: fewer ear twitches, no extra movement
+      this.faceSide = null;       // 'left' or 'right': poses drawn looking the other way are mirrored. null = as drawn
+      this.shadowTarget = 1; this.shadowA = 1;   // ground shadow, faded out while he is carried
       this.varietyClock = 40 + Math.random() * 50;   // idle variety (a thought, a look around), never while focusing
       // offscreen buffer so layered drawing fades as one image
       const doc = root.document;
@@ -79,6 +81,7 @@
     }
     pose(name, fadeMs = 140, flip = false, keepYaw = false) {
       const p = this.c.poses[name]; if (!p) { console.warn('missing pose', name); return; }
+      if (!keepYaw && this.faceSide && p.faces && p.faces !== this.faceSide) flip = true;      // look into the screen
       if (!keepYaw) { this.yaw = 0; if (this.visual.type !== 'pose' || this.visual.name !== name) this.squashV += 2.2; }  // small squash hides the swap
       this.setVisual({ type: 'pose', name, flip }, fadeMs);
     }
@@ -266,6 +269,7 @@
       this.squashV += (-170 * this.squash - 14 * this.squashV) * dt; this.squash += this.squashV * dt;
       for (const s of ['l', 'r']) { this.ear[s + 'v'] += (-260 * this.ear[s] - 16 * this.ear[s + 'v']) * dt; this.ear[s] += this.ear[s + 'v'] * dt; }
       this.alpha += (this.alphaTarget - this.alpha) * Math.min(1, dt * 4);
+      this.shadowA += (this.shadowTarget - this.shadowA) * Math.min(1, dt * 12);
       this.lean += (this.leanTarget - this.lean) * Math.min(1, dt * 6);
       // tail mood blends smoothly
       const target = MOODS[this.mood]; const k = Math.min(1, dt * 2.5);
@@ -331,11 +335,15 @@
       const breathe = 1 + Math.sin(this.time * this.breathHz * TAU) * this.breathAmp;
       const sx = (1 + this.squash * 0.06) * (1 - (breathe - 1) * 0.4), sy = (1 - this.squash * 0.08) * breathe;
       ctx.save();
-      // ground shadow
-      const air = this.yOff;
-      ctx.globalAlpha = 0.28 * this.alpha * (1 - Math.min(0.5, air / 80));
-      ctx.fillStyle = '#000'; ctx.beginPath();
-      ctx.ellipse(this.x, this.groundY - 1, 62 * (1 - air / 200), 8 * (1 - air / 200), 0, 0, TAU); ctx.fill();
+      // ground shadow: a soft, feathered oval. Gone while he is carried, smaller while he hops.
+      const air = this.yOff, k = 1 - Math.min(0.5, air / 120);
+      if (this.shadowA > 0.01) {
+        ctx.translate(this.x, this.groundY - 2); ctx.scale(1, 0.15);
+        const R = 84 * k, g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+        g.addColorStop(0, 'rgba(0,0,0,0.42)'); g.addColorStop(0.45, 'rgba(0,0,0,0.20)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.globalAlpha = this.alpha * this.shadowA * k; ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+      }
       ctx.restore();
       if (this.prev) {
         const p = clamp((this.time - this.prev.t0) / this.prev.dur, 0, 1);
