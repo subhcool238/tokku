@@ -114,8 +114,8 @@
       const now = this.o.now(), mins = now.getHours() * 60 + now.getMinutes(), late = mins >= 23 * 60 + 30 || mins < 5 * 60;
       this._ev('nudge:' + n); this.ch.minimalMotion = false;
       if (n >= 3) { this.bargaining = false; this.ch.show('annoyed_angry'); this.say('nudge_firm', null, undefined, true); }                      // third time in 30 min
-      else if (this.bargaining) { this.bargaining = false; this.ch.show('away_check_time'); this.say('bargain_over', null, undefined, true); }    // the five minutes are over
-      else { this.ch.show('annoyed_question'); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }]); }
+      else if (this.bargaining) { this.bargaining = false; this.ch.show('nudge_watch'); this.say('bargain_over', null, undefined, true); }    // the five minutes are over
+      else { this.ch.show(n === 1 ? 'nudge_shrug' : 'nudge_arms'); this.say(late ? 'late_night' : 'nudge_gentle', [{ id: 'bargain', label: '5 more minutes' }]); }
     }
     _distractionEnded() {          // the video or game is no longer in front
       const d = this.dist, was = this.nudging || this.bargaining;
@@ -154,7 +154,7 @@
       if (this.nudging) this.ignored = 0;                             // any answer counts as not ignoring him
       if (action === 'bargain' && this.nudging) {                     // "5 more minutes" of the video: open palm, then he looks away
         this.nudging = false; this.bargaining = true; this.dist.nudged = false; this.dist.graceUntil = this.t + this.o.bargainMin * MIN;
-        if (!this.quiet) this.ch.accept().then(ok => ok && this.bargaining && this.ch.show('away_look_away'));
+        if (!this.quiet) this.ch.accept().then(ok => ok && this.bargaining && this.ch.show('nudge_ignore'));
         this.say('bargain_granted'); return true;
       }
       if (action === 'backtowork' && this.nudging) {                  // I promise to go back: thumbs up, and a minute to actually do it

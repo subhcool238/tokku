@@ -643,6 +643,77 @@
      "use": true
     }
    ]
+  },
+  "S21": {
+   "file": "S21_nudge_angry.png",
+   "layout": "4 figures, 1 row",
+   "note": "Angry nudge poses (13 Oct): shrug, arms crossed tapping a foot, watch check, ignoring.",
+   "frames": [
+    {
+     "name": "nudge_shrug",
+     "use": true
+    },
+    {
+     "name": "nudge_arms",
+     "use": true
+    },
+    {
+     "name": "nudge_watch",
+     "use": true
+    },
+    {
+     "name": "nudge_ignore",
+     "use": true
+    }
+   ]
+  },
+  "S22": {
+   "file": "S22_everyday.png",
+   "layout": "4 figures, 1 row",
+   "note": "Everyday poses redrawn in the newer style (13 Oct): thumbs up, relaxed sit, stretch, yawn.",
+   "frames": [
+    {
+     "name": "thanks_thumbs",
+     "use": true
+    },
+    {
+     "name": "rest_sit",
+     "use": true
+    },
+    {
+     "name": "rest_stretch",
+     "use": true
+    },
+    {
+     "name": "rest_yawn",
+     "use": true
+    }
+   ]
+  },
+  "S23": {
+   "file": "S23_drag_first.png",
+   "layout": "4 figures, 1 row",
+   "note": "First drag, not smiling (13 Oct): grabbed, hanging, grumpy sit, grumpy sit with eyes closed.",
+   "frames": [
+    {
+     "name": "drag1_grab",
+     "use": true,
+     "airborne": true
+    },
+    {
+     "name": "drag1_hang",
+     "use": true,
+     "airborne": true
+    },
+    {
+     "name": "drag1_sit",
+     "use": true
+    },
+    {
+     "name": "drag1_sit_blink",
+     "use": true
+    }
+   ]
   }
  },
  "derived": [

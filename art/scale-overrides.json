@@ -75,5 +75,53 @@
  "draga_sit": {
   "scale": 0.72,
   "why": "this sheet is drawn with a bigger head for its body; halfway between matching heads and matching body size, one value for all four"
+ },
+ "nudge_shrug": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "nudge_arms": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "nudge_watch": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "nudge_ignore": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "thanks_thumbs": {
+  "scale": 0.7,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "rest_sit": {
+  "scale": 0.7,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "rest_stretch": {
+  "scale": 0.7,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "rest_yawn": {
+  "scale": 0.7,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "drag1_grab": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "drag1_hang": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "drag1_sit": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
+ },
+ "drag1_sit_blink": {
+  "scale": 0.72,
+  "why": "newer sheets are drawn with a bigger head for the body; one value per sheet, halfway between matching heads and matching body size"
  }
 }

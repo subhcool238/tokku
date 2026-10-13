@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('guard', {
   dragStart: () => ipcRenderer.send('tokku:drag-start'),         // the window follows the mouse while he is dragged
   drag: (dx, dy) => ipcRenderer.send('tokku:drag', Number(dx) || 0, Number(dy) || 0),
   drop: () => ipcRenderer.send('tokku:drop'),                     // let go: he falls back to the floor
+  state: (s) => ipcRenderer.send('tokku:state', String(s)),       // working, break, meal...: Guard never pings the phone during a meal
   // Guard -> renderer: simple events like { type: 'quiet', on: true } or { type: 'meal', meal: 'lunch' }
   onEvent: (cb) => ipcRenderer.on('guard:event', (e, ev) => cb(ev)),
 });

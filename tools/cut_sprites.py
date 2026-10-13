@@ -36,7 +36,7 @@ CHAR_JSON = ASSETS / "character.json"
 
 MODEL = "u2net"                      # compared with isnet-general-use on S01 and S06: fewer ragged bits in white face fur
 MARGIN = 6                           # transparent pixels kept around each trimmed frame
-AIRBORNE = {"joy_jump", "drag_grab", "drag_hang", "draga_grab", "draga_hang"}
+AIRBORNE = {"joy_jump", "drag_grab", "drag_hang", "draga_grab", "draga_hang", "drag1_grab", "drag1_hang"}
 WALK_LIKE = ("walk_", "walkd_", "walka_", "side_idle")   # anchor on the torso, not the feet, so the body does not jitter
 SCALE_FALLBACK = {"S07": "S06"}      # sheets with no measurable frame borrow the scale of another sheet
 HEAD_SHEETS = {"S05"}                # back views hide the eye patches: measure head height (top to neck) instead
@@ -56,7 +56,9 @@ SCALE_SPREAD = 0.05                  # a frame may differ this much from its she
 FACES_RIGHT = {"annoyed_question", "annoyed_mild", "annoyed_angry", "away_sigh", "accept_thumbs", "found_point", "break_sit_relaxed",
                "drag_sit", "joy_excited", "done_proud", "done_thumbs", "plead", "hopeful", "surprise_start", "surprise_strong",
                "sleepy_stand", "yawn_sit", "drowsy_sit", "sleep_curl", "wake_yawn_lying", "stretch_up", "break_stretch", "break_yawn",
-               "inspect_low", "think_chin", "notice", "joy_wink_thumbs", "draga_sit", "draga_hang"}
+               "inspect_low", "think_chin", "notice", "joy_wink_thumbs", "draga_sit", "draga_hang",
+               "nudge_shrug", "nudge_arms", "nudge_watch", "nudge_ignore", "thanks_thumbs", "rest_sit", "rest_stretch", "rest_yawn",
+               "drag1_grab", "drag1_hang", "drag1_sit", "drag1_sit_blink"}
 FACES_LEFT = {"away_look_away"}
 
 YAW = {"turn_000": 0, "turn_030": 30, "turn_060": 60, "turn_090": 90, "turn_120": 120, "turn_150": 150,
@@ -565,11 +567,11 @@ SEQUENCES = {
     "attention": seq(("wave_hello", 0), hold="wave_hello"),      # one pose: he waves hi and holds it (review, 12 Oct)
     "plead": seq(("plead", 1800)),      # one face only
     "accept": seq(("paw_stop", 1400), end="rig"),            # open palm, five fingers: "five more minutes"
-    "thanks": seq(("accept_thumbs", 1300), end="rig"),       # thumbs up when you go back to work
+    "thanks": seq(("thanks_thumbs", 1300), end="rig"),       # thumbs up when you go back to work
     "sigh": seq(("away_sigh", 1600), end="rig"),             # a question he asked got no answer
     "sulk": seq(("sulk", 1500), end="rig"),
-    "rest": seq(("break_sit_relaxed", 0), hold="break_sit_relaxed"),      # one relaxed pose for the whole break
-    "stretch_up": seq(("break_stretch", 1000), end="rig"),
+    "rest": seq(("rest_sit", 0), hold="rest_sit"),      # one relaxed pose for the whole break
+    "stretch_up": seq(("rest_stretch", 1000), end="rig"),
     "sleep_in": seq(("sleepy_stand", 500), ("yawn_sit", 750), ("drowsy_sit", 650)),   # then the engine shows sleep_curl and loops
     "wake": seq(("wake_yawn_lying", 600), ("wake_sit_rub", 600), ("stretch_up", 650), end="rig"),   # no second curled up pose
     "celebrate": seq(("joy_excited", 450), ("joy_jump", 450), ("done_checkmark", 1200), ("done_proud", 900),
@@ -577,8 +579,8 @@ SEQUENCES = {
     "annoyed_1": seq(("annoyed_mild", 1600), end="rig"),
     "annoyed_2": seq(("annoyed_question", 1600), end="rig"),
     "annoyed_3": seq(("annoyed_angry", 1800), end="rig"),
-    "drag_start": seq(("drag_grab", 120), ("drag_hang", 0), hold="drag_hang"),
-    "drag_end": seq(("drag_sit", 1000)),      # one landing pose only
+    "drag_start": seq(("drag1_grab", 120), ("drag1_hang", 0), hold="drag1_hang"),
+    "drag_end": seq(("drag1_sit", 1000)),      # one landing pose only
     "drag_start_angry": seq(("draga_grab", 120), ("draga_hang", 0), hold="draga_hang"),      # from the second drag within an hour
     "drag_end_angry": seq(("draga_sit", 1000)),
     "quiet_on": seq(("quiet_back_sit", 0), hold="quiet_back_sit", before="turn:180", dim=0.55),

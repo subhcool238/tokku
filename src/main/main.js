@@ -3,7 +3,7 @@
    - NOT always on top: other windows cover him. He comes forward only when the renderer asks.
    - click-through everywhere except on the character and his buttons
    - the renderer is sandboxed, has no network and no permissions, and is served from a private app:// scheme */
-const { app, BrowserWindow, Tray, Menu, protocol, session, screen, ipcMain, nativeImage, globalShortcut } = require('electron');
+const { app, BrowserWindow, Tray, Menu, protocol, session, screen, ipcMain, nativeImage, globalShortcut, dialog, clipboard } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -15,6 +15,35 @@ const WIN = { width: 340, height: 452, margin: 0 };      // he stands in the ver
 
 let win = null, tray = null;
 const sense = require('./guard-sense');
+const phone = require('./guard-phone');
+let link = { on: true, topic: null };                // phone link, loaded when the app is ready
+const away = { lockedAt: 0, pinged: false, testTimer: false, brainState: 'idle' };
+const awayAfterSec = () => (away.testTimer ? 2 : 30) * 60;
+
+async function phoneSetup() {
+  if (!link.topic) { link.topic = phone.newTopic(); link.on = true; phone.save(link); buildTray(); }
+  clipboard.writeText(link.topic);
+  await dialog.showMessageBox({ type: 'info', title: 'Tokku phone link', buttons: ['OK'], message: 'Connect your phone (one time)',
+    detail: '1. Install the free app "ntfy" on your phone (Play Store or App Store).\n2. In ntfy, tap + and subscribe to this topic:\n\n' + link.topic +
+      '\n\nThe topic is copied to your clipboard, so you can send it to your phone.\n3. Then choose "Send a test message" in the Tokku tray menu.\n\nKeep the topic private: anyone who knows it can read these messages. Do not show it in your video.' });
+}
+async function phoneTest() {
+  const r = await phone.send(link.topic, 'Test from Tokku. Your phone link works.');
+  dialog.showMessageBox({ type: r.ok ? 'info' : 'warning', title: 'Tokku phone link', buttons: ['OK'],
+    message: r.ok ? 'Test message sent. It should reach your phone within a few seconds.' : 'The test message could not be sent (' + r.error + '). Check your internet connection.' });
+}
+// Called with every sensing report: sends one message per away session.
+function checkAway(r) {
+  const now = Date.now();
+  if (r.locked && !away.lockedAt) away.lockedAt = now;
+  if (!r.locked) away.lockedAt = 0;
+  const awaySec = Math.max(r.idle, away.lockedAt ? (now - away.lockedAt) / 1000 : 0);
+  if (awaySec < 30 && !r.locked) { away.pinged = false; return; }
+  const ok = phone.shouldPing({ linked: !!link.topic, on: link.on, alreadyPinged: away.pinged, awaySec, afterSec: awayAfterSec(),
+    quiet: state.quiet, paused: state.pausedUntil > now, brainState: away.brainState });
+  if (ok) { away.pinged = true; phone.send(link.topic, phone.awayText(Math.round(awaySec / 60))); }
+}
+ipcMain.on('tokku:state', (e, s) => { away.brainState = String(s).slice(0, 20); });
 const state = { interview: false, dnd: false, pausedUntil: 0, pausesThisHour: [], micCamera: true, debug: false, sensed: [], quiet: false };
 
 // Quiet mode is on when any reason holds: Interview mode, Do not disturb, a meeting window, mic or camera in use, a full screen work app
@@ -209,6 +238,13 @@ function buildTray() {
     { type: 'separator' },
     { label: 'Start with Windows', type: 'checkbox', enabled: app.isPackaged, checked: app.isPackaged && app.getLoginItemSettings().openAtLogin,
       click: (i) => app.setLoginItemSettings({ openAtLogin: i.checked }) },
+    { label: 'Phone link', submenu: [
+      { label: link.topic ? 'Show the topic again' : 'Set up (connect my phone)', click: () => phoneSetup() },
+      { label: 'Tell my phone when I am away 30 min', type: 'checkbox', enabled: !!link.topic, checked: !!link.topic && link.on, click: (i) => { link.on = i.checked; phone.save(link); } },
+      { label: 'Send a test message', enabled: !!link.topic, click: () => phoneTest() },
+      { label: 'Testing: away after 2 minutes', type: 'checkbox', checked: away.testTimer, click: (i) => { away.testTimer = i.checked; } },
+      { label: 'Make a new topic', enabled: !!link.topic, click: () => { link.topic = null; phoneSetup(); } },
+    ] },
     { label: 'Show what Tokku senses (debug line)', type: 'checkbox', checked: state.debug, click: (i) => { state.debug = i.checked; send({ type: 'debug', on: state.debug }); } },
     { label: 'Settings (coming in a later phase)', enabled: false },
     { label: 'What Tokku saw today (coming in a later phase)', enabled: false },
@@ -238,6 +274,7 @@ app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.whenReady().then(() => {
+    link = phone.load();
     serveRenderer(); lockDownSession(); createWindow();
     sense.start((r) => {
       state.lastReport = r;
@@ -245,7 +282,8 @@ else {
       if (process.env.TOKKU_SHOT) return;                           // the self-test acts out its own activity
       state.sensed = r.reasons; updateQuiet();
       send({ type: 'activity', category: r.category, app: r.app, idle: r.idle, locked: r.locked, dt: r.dt, reasons: r.reasons, desktop: !!r.desktop });
-      if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes });
+      checkAway(r);
+      if (r.backMinutes >= 1) send({ type: 'back', minutes: r.backMinutes, long: r.backMinutes * 60 >= awayAfterSec() });
     }, { micCamera: () => state.micCamera });
     if (!process.env.TOKKU_SHOT) {
       createTray();

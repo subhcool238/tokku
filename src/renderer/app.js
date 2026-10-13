@@ -5,7 +5,7 @@
   const $ = (id) => document.getElementById(id);
   const canvas = $('stage'), ctx = canvas.getContext('2d', { willReadFrequently: true });
   const bubble = $('bubble'), bubbleText = $('bubble-text'), bubbleActs = $('bubble-acts'), hoverBar = $('hover-bar');
-  const guard = window.guard || { hover() {}, front() {}, walk() {}, dragStart() {}, drag() {}, drop() {}, onEvent() {} };
+  const guard = window.guard || { hover() {}, front() {}, walk() {}, dragStart() {}, drag() {}, drop() {}, state() {}, onEvent() {} };
   const HOME_X = 215, GROUND_Y = canvas.height - 7;               // 215 is also the centre of the bubble and buttons in app.css
   let status = 'loading';
   window.__tokkuStatus = () => status;
@@ -129,7 +129,7 @@
       step();                                                       // react at once, even if the window is covered
       if (ev.idle >= 300 && brain.state === 'focusing' && brain.timer && brain.timer.kind === 'focus') brain._setTimer('focus', brain.o.focusMin);   // 5 idle minutes count as a break
     }
-    else if (ev.type === 'back') { if (ev.minutes >= 30 && !brain.quiet && brain.state !== 'meal') { ch.welcomeBack(); brain.say('welcome_back'); } }
+    else if (ev.type === 'back') { if (ev.long && !brain.quiet && brain.state !== 'meal') { ch.welcomeBack(); brain.say('welcome_back'); } }
     else if (ev.type === 'debug') { debugOn = ev.on; $('debug').hidden = !ev.on; }
     else if (ev.type === 'quiet') brain.setQuiet(ev.on);
     else if (ev.type === 'meal') brain.startMeal(ev.meal);
@@ -137,6 +137,7 @@
   });
 
   // ---------- ignored for too long: he walks to the middle of the screen and stays until the video is closed ----------
+  let sentState = '';
   let place = 'home', moving = false, holdUntil = 0, moveGen = 0;      // moveGen: a new drag cancels whatever was going on
   const WALK_SPEED = 200;                                         // same as WALK_PX_PER_SEC in src/main/main.js
   function targetX(where) {                                       // where the window's left edge will be, to know which way to walk
@@ -151,7 +152,7 @@
     const dir = Math.sign(targetX(want) - window.screenX);
     if (!dir) { place = want; ch.forceAngry = false; return; }
     moving = true; ui.hide(); showHover(false);
-    const angry = want === 'center' || place === 'dropped';       // he stomps over, or stomps back after a drop
+    const angry = want === 'center' || (place === 'dropped' && dragTimes.length >= 2);   // first drag: normal walk back. From the second: angry walk
     ch.forceAngry = angry; ch.face = angry ? 'angry' : ch.face;
     ch.walkInPlace(dir, WALK_SPEED, angry ? 'angry' : null);
     guard.walk(want);
@@ -191,6 +192,7 @@
     ch.draw(ctx);
     if (over) showHover(true);
     ch.faceSide = (window.screenX + HOME_X) > ((screen.availLeft || 0) + screen.availWidth / 2) ? 'left' : 'right';   // look into the screen
+    if (brain.state !== sentState) { sentState = brain.state; guard.state(sentState); }
     updatePlace();
     updateFront(now);
     status = 'running, ' + Object.keys(images).length + ' images, brain ' + brain.state + ', picture ' + (ch.visual.name || ch.visual.type);
