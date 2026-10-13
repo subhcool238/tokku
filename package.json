@@ -7,7 +7,7 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node src/renderer/character/tests/brain.test.js && node src/renderer/character/tests/assets.test.js",
+    "test": "node src/renderer/character/tests/brain.test.js && node src/renderer/character/tests/assets.test.js && node src/main/tests/sense.test.js",
     "review": "start art/review/sequences.html"
   },
   "devDependencies": {
