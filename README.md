@@ -42,7 +42,13 @@ A fuller description of what triggers what is in [docs/user-flow.md](docs/user-f
 
 **Honest limit:** the sandbox limits what Tokku's code can do. It is not a lock against you. You own the PC, so Task Manager can always end it. Tokku is a commitment device, not security software.
 
-## Run it
+## Try it
+
+**In the browser:** https://subhcool238.github.io/tokku/demo/ (the real character and behaviour, with the desktop sensing replaced by buttons).
+
+**On Windows without installing anything:** download `Tokku-Windows.zip` from the latest release or build it with `npm run package`, unzip it, and double click `Tokku.exe`. Windows may say "Windows protected your PC" because the app is not signed: click More info, then Run anyway.
+
+## Run it from source
 
 Requirements: Windows 10 or 11, and [Node.js](https://nodejs.org) 20 or newer.
 

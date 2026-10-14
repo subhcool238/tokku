@@ -8,7 +8,8 @@
   "scripts": {
     "start": "electron .",
     "test": "node src/renderer/character/tests/brain.test.js && node src/renderer/character/tests/assets.test.js && node src/main/tests/sense.test.js",
-    "review": "start art/review/sequences.html"
+    "review": "start art/review/sequences.html",
+    "package": "node tools/package-win.js"
   },
   "devDependencies": {
     "electron": "^44.7.0",
