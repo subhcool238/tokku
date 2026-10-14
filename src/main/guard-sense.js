@@ -30,8 +30,9 @@ function classify(title, owner) {
 }
 
 // "in use now" = any app entry whose LastUsedTimeStop is 0 (the same data that shows the mic icon in the taskbar)
-// Screen recorders use the microphone too, but recording your screen is not a call: these never cause Quiet mode.
-const RECORDERS = /ScreenSketch|XboxGamingOverlay|XboxGameBar|GamingApp|obs(64|32)?\.exe|obs-studio|sharex|camtasia|bandicam|screenrec|loom|clipchamp/i;
+// Screen recorders and video or audio editors use the microphone too (editors keep it open the whole time they
+// are running, ready for a voice-over), but that is not a call: these never cause Quiet mode.
+const RECORDERS = /ScreenSketch|XboxGamingOverlay|XboxGameBar|GamingApp|obs(64|32)?\.exe|obs-studio|sharex|camtasia|bandicam|screenrec|loom|clipchamp|Adobe Premiere|Adobe After Effects|Adobe Audition|Adobe Media Encoder|Adobe Premiere Rush|Resolve\.exe|DaVinci|Vegas|Filmora|CapCut|Kdenlive|Shotcut/i;
 // Reads the output of "reg query": a line with the app's key, then its value. Returns true if any app that is
 // not a screen recorder has LastUsedTimeStop = 0, which means "in use right now".
 function inUseFromReg(out) {

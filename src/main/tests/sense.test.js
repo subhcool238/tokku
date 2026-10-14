@@ -15,6 +15,8 @@ const reg = (...apps) => apps.map(([name, stop]) => KEY + name + '\r\n    LastUs
 check('Snipping Tool recording is not a call', inUseFromReg(reg(['Microsoft.ScreenSketch_8wekyb3d8bbwe', IN_USE])), false);
 check('Game Bar recording is not a call', inUseFromReg(reg(['Microsoft.XboxGamingOverlay_8wekyb3d8bbwe', IN_USE])), false);
 check('OBS recording is not a call', inUseFromReg(reg(['NonPackaged\\C:#Program Files#obs-studio#bin#64bit#obs64.exe', IN_USE])), false);
+check('Premiere Pro open is not a call', inUseFromReg(reg(['NonPackaged\C:#Program Files#Adobe#Adobe Premiere Pro 2023#Adobe Premiere Pro.exe', IN_USE])), false);
+check('DaVinci Resolve open is not a call', inUseFromReg(reg(['NonPackaged\C:#Program Files#Blackmagic Design#DaVinci Resolve#Resolve.exe', IN_USE])), false);
 check('Zoom using the mic is a call', inUseFromReg(reg(['NonPackaged\\C:#Users#x#AppData#Roaming#Zoom#bin#Zoom.exe', IN_USE])), true);
 check('recording during a browser call is still a call',
   inUseFromReg(reg(['Microsoft.ScreenSketch_8wekyb3d8bbwe', IN_USE], ['NonPackaged\\C:#Program Files#Google#Chrome#Application#chrome.exe', IN_USE])), true);
