@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tokku demo</title>
+  <meta name="description" content="Try Tokku, a small mongoose who lives on your desktop and guards your focus. Browser preview of the Windows app.">
+  <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Tokku</h1>
+    <p class="lead">A small mongoose who lives in the corner of your desktop and guards your focus. Try him below.</p>
+    <p class="note">Browser preview. The real app runs on Windows and reacts to the apps you actually open, your Notion tasks and your phone. Here those are simulated with buttons, and every timer is a few seconds long.</p>
+  </header>
+
+  <section class="stage-wrap glass">
+    <div id="desk">
+      <div id="tube" hidden>
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">youtube.com</span></div>
+        <div class="screen"><div class="play"></div><p>A very interesting video</p></div>
+      </div>
+      <canvas id="stage" width="1000" height="440"></canvas>
+      <div id="bubble" class="glass" hidden><div id="bubble-text"></div><div id="bubble-acts"></div></div>
+      <p id="hint">Tip: you can drag Tokku with the mouse</p>
+    </div>
+    <p id="status">Loading Tokku...</p>
+  </section>
+
+  <section class="controls">
+    <div class="group">
+      <h2>Try a moment</h2>
+      <div class="row">
+        <button data-act="focus">Start working</button>
+        <button data-act="youtube" class="primary">Open YouTube</button>
+        <button data-act="close">Close YouTube</button>
+        <button data-act="lunch">Go for lunch</button>
+        <button data-act="done">Finish a Notion task</button>
+        <button data-act="quiet">Join a call</button>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Or watch everything</h2>
+      <div class="row">
+        <button data-act="story" class="primary">Play the full story</button>
+        <button data-act="reset">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="facts">
+    <div class="fact glass"><h3>Observes, never acts</h3><p>He suggests. He never closes, blocks or minimises anything.</p></div>
+    <div class="fact glass"><h3>Private by design</h3><p>Window titles are classified and thrown away. Nothing about what you do leaves the PC.</p></div>
+    <div class="fact glass"><h3>Quiet on calls</h3><p>Mic or camera in use, a meeting or a presentation: he turns around and says nothing.</p></div>
+  </section>
+
+  <footer>Built for DJXHack "Everyday Magic" by Shubhanshu Sahu. Code and download: <a href="https://github.com/subhcool238/tokku">github.com/subhcool238/tokku</a></footer>
+</main>
+<script src="../src/renderer/character/assets/character.data.js"></script>
+<script src="../src/renderer/character/tokku-character.js"></script>
+<script src="../src/renderer/character/tokku-brain.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+:root { --ink: #f4f6fb; --soft: rgba(244, 246, 251, .72); --amber: #ffb24a; }
+* { box-sizing: border-box; }
+html, body { margin: 0; color: var(--ink); font: 15px/1.5 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+body { min-height: 100vh; background:
+    radial-gradient(900px 520px at 12% -8%, rgba(255, 150, 60, .50), transparent 62%),
+    radial-gradient(760px 520px at 96% 8%, rgba(96, 132, 255, .46), transparent 60%),
+    radial-gradient(900px 620px at 55% 112%, rgba(60, 200, 190, .36), transparent 62%),
+    linear-gradient(160deg, #1a1d2b, #10121b 70%); background-attachment: fixed; }
+[hidden] { display: none !important; }
+main { max-width: 1040px; margin: 0 auto; padding: 28px 16px 40px; }
+h1 { margin: 0; font-size: 34px; letter-spacing: -.02em; }
+h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; }
+h3 { margin: 0 0 4px; font-size: 15px; }
+.lead { margin: 4px 0 6px; font-size: 17px; }
+.note { margin: 0 0 18px; color: var(--soft); font-size: 13.5px; }
+a { color: var(--amber); }
+
+.glass { background: linear-gradient(180deg, rgba(255, 255, 255, .17), rgba(255, 255, 255, .07));
+  -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, .15); border-top-color: rgba(255, 255, 255, .34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 14px 36px rgba(0, 0, 0, .34); }
+
+.stage-wrap { border-radius: 24px; overflow: hidden; }
+#desk { position: relative; background: linear-gradient(180deg, rgba(12, 14, 26, .35), rgba(12, 14, 26, .1)); }
+#stage { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
+#stage.grabbing { cursor: grabbing; }
+#status { margin: 0; padding: 8px 16px; font: 12px ui-monospace, Consolas, monospace; color: var(--soft); border-top: 1px solid rgba(255, 255, 255, .12); }
+#hint { position: absolute; left: 14px; bottom: 6px; margin: 0; font-size: 12px; color: var(--soft); }
+
+/* a pretend browser window for the YouTube moments */
+#tube { position: absolute; left: 4%; top: 7%; width: 52%; height: 72%; border-radius: 12px; overflow: hidden; background: #0f0f0f;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .12); animation: open .25s ease-out; }
+#tube .bar { height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #202020; font-size: 12px; color: #aaa; }
+#tube .dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+#tube .url { margin-left: 10px; padding: 2px 10px; border-radius: 6px; background: #2c2c2c; }
+#tube .screen { height: calc(100% - 30px); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ddd;
+  background: radial-gradient(circle at 30% 30%, #3a3d6b, #13131c 70%); }
+#tube .play { width: 64px; height: 44px; border-radius: 12px; background: #f00; position: relative; }
+#tube .play::after { content: ""; position: absolute; left: 26px; top: 12px; border-left: 16px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+@keyframes open { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+
+/* speech bubble, same glass look as the app */
+#bubble { position: absolute; transform: translate(-50%, -100%); max-width: 260px; padding: 12px 15px 13px; border-radius: 24px; text-align: center;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .30), rgba(255, 255, 255, .08) 42%, rgba(255, 255, 255, .16)), rgba(30, 34, 52, .62); z-index: 3; }
+#bubble-text { font-size: 14px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, .4); text-wrap: balance; }
+#bubble-acts { margin-top: 9px; display: flex; gap: 6px; justify-content: center; }
+#bubble-acts:empty { display: none; }
+
+.controls { display: grid; grid-template-columns: 1fr auto; gap: 18px; margin: 18px 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; padding: 9px 16px; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .09)); border: 1px solid rgba(255, 255, 255, .26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 4px 12px rgba(0, 0, 0, .24); transition: transform .12s ease, filter .15s ease; }
+button:hover { filter: brightness(1.14); transform: translateY(-1px); }
+button:active { transform: scale(.97); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button.primary { color: #2a1700; background: linear-gradient(180deg, rgba(255, 205, 130, .97), rgba(255, 160, 50, .92)); border-color: rgba(255, 226, 180, .9); }
+#bubble button { font-size: 12.5px; padding: 6px 12px; }
+
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.fact { padding: 14px 16px; border-radius: 18px; }
+.fact p { margin: 0; color: var(--soft); font-size: 13.5px; }
+footer { margin-top: 22px; color: var(--soft); font-size: 13px; }
+
+@media (max-width: 720px) {
+  .controls, .facts { grid-template-columns: 1fr; }
+  h1 { font-size: 28px; }
+  #bubble { max-width: 200px; }
+  #bubble-text { font-size: 12.5px; }
+}
+@media (prefers-reduced-motion: reduce) { button { transition: none; } #tube { animation: none; } }
