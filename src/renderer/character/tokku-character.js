@@ -368,9 +368,9 @@
       let im, ax, fy, flip = false, w, h;
       let k = 1;
       if (v.type === 'rig') { im = this._renderRig(); if (!im) return; ax = this.c.rig.anchorX + this.M; fy = this.c.rig.feetY + this.M; w = im.width; h = im.height; k = this.c.rig.scale || 1; }
-      if (v.type === 'ring') { const r = this.ring[v.idx]; im = this.img[r.file]; ax = r.anchorX ?? this.c.ring.anchorX; fy = r.feetY ?? this.c.ring.feetY; flip = !!r.flip; k = r.scale ?? this.c.ring.scale ?? 1; }   // art v3: each view has its own anchor and scale
-      else if (v.type === 'pose') { const p = this.c.poses[v.name]; im = this.img[p.file]; ax = p.anchorX; fy = p.feetY; flip = !!v.flip; k = p.scale || 1; }
-      if (!im) return; w = w || im.width; h = h || im.height;
+      if (v.type === 'ring') { const r = this.ring[v.idx]; im = this.img[r.file]; const rp = this.c.poses[r.pose]; if (rp) { w = rp.w; h = rp.h; } ax = r.anchorX ?? this.c.ring.anchorX; fy = r.feetY ?? this.c.ring.feetY; flip = !!r.flip; k = r.scale ?? this.c.ring.scale ?? 1; }   // art v3: each view has its own anchor and scale
+      else if (v.type === 'pose') { const p = this.c.poses[v.name]; im = this.img[p.file]; w = p.w; h = p.h; ax = p.anchorX; fy = p.feetY; flip = !!v.flip; k = p.scale || 1; }
+      if (!im) return; w = w || im.width; h = h || im.height;      // sizes come from character.json, so smaller web copies of the pictures draw the same
       ctx.save(); ctx.globalAlpha = alpha;
       ctx.translate(this.x, this.groundY - this.yOff); ctx.rotate(this.lean);
       ctx.scale((flip ? -1 : 1) * sx * this.S * k, sy * this.S * k);
@@ -387,26 +387,26 @@
       const tp = this.tailP; const lim = R.tailRotationLimits || [-2, 24];
       let ang = tp.base + Math.sin(this.tailPhase) * tp.amp + (tp.jit ? (Math.sin(this.time * 113) * 0.5 + Math.sin(this.time * 71)) * tp.jit : 0);
       ang = clamp(ang, lim[0], lim[1]) * (R.tailSign || 1);    // tailSign -1: the tail is on the left of the body
-      drawRot(g, I[R.layers.tail], P.tail, ang, tp.scale);
+      drawRot(g, I[R.layers.tail], P.tail, ang, tp.scale, R.w, R.h);
       if (this.face === 'angry' && R.angry && I[R.angry.open]) {      // angry idle: the body without its head, plus one whole angry head
-        g.drawImage(I[R.angry.body], 0, 0);
+        g.drawImage(I[R.angry.body], 0, 0, R.w, R.h);
         const k = (this.talking && this.mouth) ? 'talk' : this.blink === 2 ? 'closed' : this.blink === 1 ? 'half' : 'open';
-        g.drawImage(I[R.angry[k]] || I[R.angry.open], 0, 0);
+        g.drawImage(I[R.angry[k]] || I[R.angry.open], 0, 0, R.w, R.h);
         return this.buf;
       }
-      drawRot(g, I[R.layers.ear_l], P.earL, this.ear.l, 1);
-      drawRot(g, I[R.layers.ear_r], P.earR, this.ear.r, 1);
-      g.drawImage(I[R.layers.body], 0, 0);
-      if (this.blink === 1) g.drawImage(I[R.overlays.blink_half], 0, 0);
-      if (this.blink === 2) g.drawImage(I[R.overlays.blink_closed], 0, 0);
-      if (this.talking && this.mouth) g.drawImage(I[R.overlays.mouth_open], 0, 0);
+      drawRot(g, I[R.layers.ear_l], P.earL, this.ear.l, 1, R.w, R.h);
+      drawRot(g, I[R.layers.ear_r], P.earR, this.ear.r, 1, R.w, R.h);
+      g.drawImage(I[R.layers.body], 0, 0, R.w, R.h);
+      if (this.blink === 1) g.drawImage(I[R.overlays.blink_half], 0, 0, R.w, R.h);
+      if (this.blink === 2) g.drawImage(I[R.overlays.blink_closed], 0, 0, R.w, R.h);
+      if (this.talking && this.mouth) g.drawImage(I[R.overlays.mouth_open], 0, 0, R.w, R.h);
       return this.buf;
     }
   }
 
-  function drawRot(g, im, pivot, deg, scale) {
+  function drawRot(g, im, pivot, deg, scale, w, h) {
     if (!im) return; const [px, py] = pivot;
-    g.save(); g.translate(px, py); g.rotate(-deg * Math.PI / 180); g.scale(scale, scale); g.drawImage(im, -px, -py); g.restore();
+    g.save(); g.translate(px, py); g.rotate(-deg * Math.PI / 180); g.scale(scale, scale); g.drawImage(im, -px, -py, w || im.width, h || im.height); g.restore();
   }
   function angDiff(a, b) { return ((a - b + 540) % 360) - 180; }
   function sameVisual(a, b) { return a && b && a.type === b.type && a.idx === b.idx && a.name === b.name && !!a.flip === !!b.flip; }

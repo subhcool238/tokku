@@ -1,7 +1,7 @@
 /* Tokku browser demo: the real character engine and the real brain, with the desktop sensing replaced by buttons.
    All timers are a few seconds long so a visitor can see every moment quickly. */
 (async function () {
-  const BASE = '../src/renderer/character/assets/';
+  const BASE = 'img/';                       // half size WebP copies made by tools/build_web_images.py (about a tenth of the download)
   const char = window.TOKKU_CHARACTER;
   const $ = (id) => document.getElementById(id);
   const canvas = $('stage'), ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -10,7 +10,12 @@
   const files = new Set([...Object.values(char.rig.layers), ...Object.values(char.rig.overlays), ...Object.values(char.rig.angry || {})]);
   Object.values(char.poses).forEach(p => { if (!p.legacy) files.add(p.file); });
   const images = {};
-  await Promise.all([...files].map(f => new Promise(res => { const im = new Image(); im.onload = () => { images[f] = im; res(); }; im.onerror = res; im.src = BASE + f; })));
+  let loaded = 0;
+  await Promise.all([...files].map(f => new Promise(res => {
+    const im = new Image();
+    const done = () => { loaded++; $('status').textContent = 'Loading Tokku... ' + Math.round(100 * loaded / files.size) + '%'; res(); };
+    im.onload = () => { images[f] = im; done(); }; im.onerror = done; im.src = BASE + f.replace(/\.png$/, '.webp');
+  })));
 
   const ch = new TokkuCharacter(char, images);
   ch.x = HOME_X; ch.groundY = GROUND_Y; ch.faceSide = 'left';
@@ -124,7 +129,7 @@
     ctx.fillStyle = 'rgba(255, 255, 255, 0.06)'; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
     ch.draw(ctx);
     const r = canvas.getBoundingClientRect(), k = r.width / canvas.width, b = $('bubble');
-    b.style.left = Math.max(140 * k, Math.min(r.width - 140 * k, ch.x * k)) + 'px';
+    b.style.left = Math.max(150 * k, Math.min(r.width - 150 * k, ch.x * k)) + 'px';
     b.style.top = ((ch.groundY - 215) * k) + 'px';
     const t = brain.timerInfo();
     $('status').textContent = 'Tokku is ' + ({ idle: 'relaxing', focusing: 'keeping watch while you work', attention: 'asking you something', break: 'on a break with you',
